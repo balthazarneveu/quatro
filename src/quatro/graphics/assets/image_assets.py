@@ -12,7 +12,18 @@ BACKGROUNDS = {
         DESCRIPTION: "DALL·E 2025-01-11 17.02.16 - A cartoon-style video game background designed for children"
         + ", featuring a picturesque wheat field with golden stalks swaying gently under a vibrant sun.webp",
         SIZE: (1792, 1024),
-    }
+    },
+    "sunset_field_large": {
+        PATH: BACKGROUND_ASSETS / "sunset_field_sideways.webp",
+        DESCRIPTION: "DALL·E 2025-01-11 17.22.50 -A cartoon-style video game background designed for children"
+        + " viewed from a sideways perspective. The scene features a picturesque wheat field with golden stalks"
+        + "swaying gently under a vibrant sunset. On the side, a dense and vibrant forest with lush green trees"
+        + "forms a natural border. The colorful gradient sky with orange, pink, and purple hues dominates the"
+        + "background maintaining the serene and cheerful atmosphere. The perspective emphasizes depth, with"
+        + "the wheat field and orest stretching into the horizon. The design is whimsical, vibrant, and playful, "
+        + "with exaggerated and rounded features.",
+        SIZE: (1792, 1024),
+    },
 }
 
 if __name__ == "__main__":
