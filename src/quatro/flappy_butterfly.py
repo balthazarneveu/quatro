@@ -6,11 +6,22 @@ from interactive_pipe import (
 )
 from quatro.graphics.animation.butterfly import draw_butterfly
 import numpy as np
+from PIL import Image
+from quatro.graphics.assets.image_assets import BACKGROUNDS, PATH, SIZE
+import logging
 
-
-def gen_background():
+def get_background(background_name="sunset_field"):
     """Add a background color to the image"""
-    return np.ones((256, 256, 3)) * 0.1
+    background = BACKGROUNDS[background_name]
+    logging.warning(f"load background {background_name}")
+    background_pth = background[PATH]
+    if background_pth.exists():
+        img = Image.open(background_pth)
+        size = background[SIZE]
+        img = img.resize((size[0]//2, size[1]//2))
+        return np.array(img) / 255.0
+    else:
+        return np.ones((256, 256, 3)) * 0.1
 
 
 def physics_model(jump=False, state={}):
