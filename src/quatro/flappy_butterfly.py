@@ -57,7 +57,7 @@ def place_butteffly(img, flapping_speed=10.0, state={}):
     x = state.get("x", 0.5)
     y = state.get("y", 0.5)
     time = state["time"]
-    draw_butterfly(out, time, x, y, flapping_speed=flapping_speed)
+    draw_butterfly(out, time, x, y, flapping_speed=flapping_speed, size=5., color=[0.5, 0.0, 0.1])
     return out
 
 
