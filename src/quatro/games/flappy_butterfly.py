@@ -1,4 +1,6 @@
 import pygame
+from quatro.graphics.assets.image_assets import BACKGROUNDS, PATH
+from quatro.graphics.background import draw_background
 
 
 def launch_flappy_butterfly():
@@ -12,8 +14,7 @@ def launch_flappy_butterfly():
     player_pos = pygame.Vector2(screen.get_width() / 2, screen.get_height() / 2)
 
     while running:
-        # poll for events
-        # pygame.QUIT event means the user clicked X to close your window
+        # check for events and key presses to stop the application
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
@@ -21,8 +22,9 @@ def launch_flappy_butterfly():
         if keys[pygame.K_ESCAPE] or keys[pygame.K_q]:
             running = False
 
-        # fill the screen with a color to wipe away anything from last frame
-        screen.fill("purple")
+        # fill the screen with an image
+        background_image = BACKGROUNDS["sunset_field"][PATH]
+        draw_background(screen, background_image)
 
         pygame.draw.circle(screen, "red", player_pos, 40)
 
