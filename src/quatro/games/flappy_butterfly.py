@@ -1,6 +1,17 @@
 import pygame
 from quatro.graphics.background import draw_background_from_asset
 from quatro.graphics.animation.butterfly import Butterfly
+from quatro.control.control import ControlledPlayer
+import numpy as np
+
+
+def update_physics_model(player: ControlledPlayer, trigger_jump=False, dt=0):
+    if trigger_jump:
+        player.velocity = player.velocity - 0.01 * 30 * 3 * 1000
+    if player.y > 0:
+        player.velocity = player.velocity + 0.01 / 10.0 * 2 * 1000
+    player.velocity = np.clip(player.velocity, -0.2*1000, None)  # keep within bounds
+    player.y += player.velocity * dt
 
 
 def launch_flappy_butterfly():
@@ -27,25 +38,21 @@ def launch_flappy_butterfly():
         draw_background_from_asset(screen, current_background)
 
         # draw a circle on the screen
-        player.set_position(*player_pos)
-        player.draw(screen, current_time=pygame.time.get_ticks() / 1000)
-        # pygame.draw.line
+        player.draw(screen, dt=dt)
 
         # Game control update logic
-        if keys[pygame.K_UP]:
-            player_pos.y -= 300 * dt
-        if keys[pygame.K_DOWN]:
-            player_pos.y += 300 * dt
         if keys[pygame.K_LEFT]:
-            player_pos.x -= 300 * dt
+            player.x -= 100 * dt
         if keys[pygame.K_RIGHT]:
-            player_pos.x += 300 * dt
+            player.x += 100 * dt
 
-        if player_pos.y < 0:
-            player_pos.y = screen.get_height() - 30
+        update_physics_model(player, keys[pygame.K_SPACE], dt=dt)
+        player.flap_speed = abs(max(-5, -player.velocity / 10))
+        if player.y < 0:
+            player.y = screen.get_height() - 30
             current_background = "sunset_field_large"
-        if player_pos.y > screen.get_height():
-            player_pos.y = 30
+        if player.y > screen.get_height():
+            player.y = 30
             current_background = "sunset_field"
 
         # flip() the display to put your work on screen

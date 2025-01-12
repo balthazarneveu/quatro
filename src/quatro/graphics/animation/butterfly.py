@@ -33,23 +33,23 @@ class Butterfly(ControlledPlayer):
         self.size = size
         self.color = color
         self.flap_speed = flap_speed
-        self.start_time = pygame.time.get_ticks() / 1000
+        self.previous_time = pygame.time.get_ticks() / 1000
+        self.previous_phase = 0
 
-    def draw(self, screen: pygame.Surface, current_time: float = None) -> None:
+    def draw(self, screen: pygame.Surface, dt: float = 0) -> None:
         """Draw the butterfly on the given pygame surface.
 
         Args:
             screen (pygame.Surface): The pygame surface to draw on
-            current_time (float, optional): External current_time value (unused). Defaults to 0.
+            dt (float, optional): External current_time value (unused). Defaults to 0.
         """
-        if current_time is None:
-            current_time = pygame.time.get_ticks() / 1000
-        relative_time = current_time - self.start_time
         # Draw body (circle)
         pygame.draw.circle(screen, self.color, (self.x, self.y), self.size // 4)
 
         # Calculate wing angle
-        wing_angle = math.sin(relative_time * self.flap_speed) * 0.5
+        current_phase = self.previous_phase + dt * self.flap_speed
+        self.previous_phase = current_phase
+        wing_angle = math.sin(current_phase) * 0.5
 
         # Calculate wing endpoints
         left_wing_end = (
@@ -74,6 +74,7 @@ if __name__ == "__main__":
     butterfly = Butterfly(200, 150, size=30, color="red", flap_speed=10)
 
     running = True
+    dt = 0
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -82,6 +83,7 @@ if __name__ == "__main__":
         screen.fill((0, 0, 0))
         butterfly.x = pygame.mouse.get_pos()[0]
         butterfly.y = pygame.mouse.get_pos()[1] - 10
-        butterfly.draw(screen, current_time=time.time())
+        butterfly.draw(screen, dt=dt)
         pygame.display.flip()
         clock.tick(60)
+        dt = clock.tick(60) / 1000
