@@ -6,26 +6,23 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "quatro"
 version = "0.0.0"
-authors = [
-  { name="Balthazar Neveu", email="balthazarneveu@gmail.com" },
-]
+authors = [{ name = "Balthazar Neveu", email = "balthazarneveu@gmail.com" }]
 dependencies = [
   "numpy>=1.21.6",
   "Pillow>=9.0.1",
   "PyYAML>=5.4.1",
   "opencv_python_headless>=4.8.1.78",
   "pytest>=6.2.5",
-  "PyQt6>=6.5.2",
-  "PyQt6_sip>=13.5.2",
+  "pygame-ce>=2.5.2",
 ]
 
 description = "Quatro game: a simple implementation of a gaming engine in python to prototype and play the game of Quatro."
 readme = "readme.md"
 requires-python = ">=3.7"
 classifiers = [
-    "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: Apache License, Version 2.0",
-    "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: Apache License, Version 2.0",
+  "Operating System :: OS Independent",
 ]
 
 [project.urls]
@@ -34,6 +31,4 @@ classifiers = [
 
 [project.optional-dependencies]
 
-full=[
-  "interactive_pipe>=0.8.7",
-]
+full = ["PyQt6>=6.5.2", "PyQt6_sip>=13.5.2", "interactive_pipe>=0.8.7"]
