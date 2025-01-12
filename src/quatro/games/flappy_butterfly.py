@@ -1,6 +1,6 @@
 import pygame
-# from quatro.graphics.assets.image_assets import BACKGROUNDS, PATH
 from quatro.graphics.background import draw_background_from_asset
+from quatro.graphics.animation.butterfly import Butterfly
 
 
 def launch_flappy_butterfly():
@@ -10,8 +10,8 @@ def launch_flappy_butterfly():
     clock = pygame.time.Clock()
     running = True
     dt = 0
-
     player_pos = pygame.Vector2(screen.get_width() / 2, screen.get_height() / 2)
+    player = Butterfly(*player_pos, size=30, color="red", flap_speed=10)
     current_background = "sunset_field"
     while running:
         # check for events and key presses to stop the application
@@ -27,7 +27,9 @@ def launch_flappy_butterfly():
         draw_background_from_asset(screen, current_background)
 
         # draw a circle on the screen
-        pygame.draw.circle(screen, "red", player_pos, 40)
+        player.set_position(*player_pos)
+        player.draw(screen, current_time=pygame.time.get_ticks() / 1000)
+        # pygame.draw.line
 
         # Game control update logic
         if keys[pygame.K_UP]:

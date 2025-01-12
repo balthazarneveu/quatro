@@ -4,7 +4,7 @@ from interactive_pipe import (
     TimeControl,
     KeyboardControl,
 )
-from quatro.graphics.animation.butterfly import draw_butterfly
+from quatro.graphics.animation.butterfly_numpy import draw_butterfly
 import numpy as np
 from PIL import Image
 from quatro.graphics.assets.image_assets import BACKGROUNDS, PATH, SIZE
