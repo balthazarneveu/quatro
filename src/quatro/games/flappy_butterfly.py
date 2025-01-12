@@ -1,6 +1,6 @@
 import pygame
-from quatro.graphics.assets.image_assets import BACKGROUNDS, PATH
-from quatro.graphics.background import draw_background
+# from quatro.graphics.assets.image_assets import BACKGROUNDS, PATH
+from quatro.graphics.background import draw_background_from_asset
 
 
 def launch_flappy_butterfly():
@@ -12,7 +12,7 @@ def launch_flappy_butterfly():
     dt = 0
 
     player_pos = pygame.Vector2(screen.get_width() / 2, screen.get_height() / 2)
-
+    current_background = "sunset_field"
     while running:
         # check for events and key presses to stop the application
         for event in pygame.event.get():
@@ -23,11 +23,13 @@ def launch_flappy_butterfly():
             running = False
 
         # fill the screen with an image
-        background_image = BACKGROUNDS["sunset_field"][PATH]
-        draw_background(screen, background_image)
 
+        draw_background_from_asset(screen, current_background)
+
+        # draw a circle on the screen
         pygame.draw.circle(screen, "red", player_pos, 40)
 
+        # Game control update logic
         if keys[pygame.K_UP]:
             player_pos.y -= 300 * dt
         if keys[pygame.K_DOWN]:
@@ -36,6 +38,13 @@ def launch_flappy_butterfly():
             player_pos.x -= 300 * dt
         if keys[pygame.K_RIGHT]:
             player_pos.x += 300 * dt
+
+        if player_pos.y < 0:
+            player_pos.y = screen.get_height() - 30
+            current_background = "sunset_field_large"
+        if player_pos.y > screen.get_height():
+            player_pos.y = 30
+            current_background = "sunset_field"
 
         # flip() the display to put your work on screen
         pygame.display.flip()
