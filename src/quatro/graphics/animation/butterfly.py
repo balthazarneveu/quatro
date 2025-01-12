@@ -2,9 +2,10 @@ import pygame
 import math
 from typing import Tuple, Union
 import time
+from quatro.control.control import ControlledPlayer
 
 
-class Butterfly:
+class Butterfly(ControlledPlayer):
     """A class representing a butterfly that can be drawn on a pygame screen with flapping wings.
 
     Attributes:
@@ -16,7 +17,7 @@ class Butterfly:
         time (float): Internal time counter for animation
     """
 
-    def __init__(self, x: int, y: int, size: int = 20,
+    def __init__(self, x: int, y: int, velocity: float = 0, size: int = 20,
                  color: Union[str, Tuple[int, int, int]] = (255, 255, 255),
                  flap_speed: float = 5) -> None:
         """Initialize a new Butterfly instance.
@@ -28,8 +29,7 @@ class Butterfly:
             color (Tuple[int, int, int], optional): RGB color tuple. Defaults to (255, 255, 255).
             flap_speed (float, optional): Speed of wing flapping. Defaults to 5.
         """
-        self.x = x
-        self.y = y
+        super().__init__(x, y, velocity=velocity)
         self.size = size
         self.color = color
         self.flap_speed = flap_speed
@@ -64,16 +64,6 @@ class Butterfly:
         # Draw wings (lines)
         pygame.draw.line(screen, self.color, (self.x, self.y), left_wing_end, 4)
         pygame.draw.line(screen, self.color, (self.x, self.y), right_wing_end, 4)
-
-    def set_position(self, x: int, y: int) -> None:
-        """Set the position of the butterfly.
-
-        Args:
-            x (int): X-coordinate of the butterfly's position
-            y (int): Y-coordinate of the butterfly's position
-        """
-        self.x = x
-        self.y = y
 
 
 if __name__ == "__main__":
