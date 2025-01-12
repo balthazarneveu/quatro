@@ -2,6 +2,8 @@ import pygame
 from quatro.graphics.background import draw_background_from_asset
 from quatro.graphics.animation.butterfly import Butterfly
 from quatro.control.control import ControlledPlayer
+from quatro.graphics.animation.wheat import Wheat
+import random
 import numpy as np
 
 
@@ -21,9 +23,16 @@ def launch_flappy_butterfly():
     clock = pygame.time.Clock()
     running = True
     dt = 0
-    player_pos = pygame.Vector2(screen.get_width() / 2, screen.get_height() / 2)
-    player = Butterfly(*player_pos, size=30, color="red", flap_speed=10)
+    w, h = screen.get_width(), screen.get_height()
+    player_pos = pygame.Vector2(w / 2, h / 2)
+    player = Butterfly(*player_pos, size=80, color="orange", flap_speed=10)
     current_background = "sunset_field"
+    wheat_stalks = [Wheat(w // 2 + (random.randint(0, 1) - 0.5)*2 * (w//8 + random.randint(0, w//2)),
+                          h + random.randint(-50, 50),
+                          height=h/10,
+                          color=(245 + random.randint(-20, 10), 222 + random.randint(-5, 5), 179 + random.randint(-5, 5)))
+                    for _ in range(500)]
+
     while running:
         # check for events and key presses to stop the application
         for event in pygame.event.get():
@@ -38,6 +47,16 @@ def launch_flappy_butterfly():
         draw_background_from_asset(screen, current_background)
 
         # draw a circle on the screen
+        for wheat in wheat_stalks:
+            wheat.x = (wheat.x - w//2) * 1.005 + w//2
+            if wheat.x < 0 or wheat.x > w:
+                wheat.x = w // 2 + (random.randint(0, 1) - 0.5)*2 * w//8 + random.randint(-w//16, w//16)
+                wheat.height = 2 * h / 3
+
+            # wheat.height += 0.1
+            WHEAT_MID_HEIGHT = h * 0.40
+            wheat.height = WHEAT_MID_HEIGHT + abs(wheat.x - w//2) / (w/2) * (WHEAT_MID_HEIGHT-1)
+            wheat.draw(screen, dt)
         player.draw(screen, dt=dt)
 
         # Game control update logic
