@@ -1,14 +1,17 @@
 from quatro.games.flappy_butterfly_interactive_pipe import launch_flappy_pipe
+from quatro.games.flappy_butterfly import launch_flappy_butterfly
 import argparse
 import sys
 
-GAMES_LIST = {"flappy_pipe": launch_flappy_pipe}
+GAMES_LIST = {
+    "flappy": launch_flappy_butterfly,
+    "flappy_pipe": launch_flappy_pipe}
 GAMES_NAMES = list(GAMES_LIST.keys())
 
 
 def populate_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser()
-    parser.add_argument("-g", "--game", type=str, default="flappy_pipe", choices=GAMES_NAMES)
+    parser.add_argument("-g", "--game", type=str, default="flappy", choices=GAMES_NAMES)
     return parser
 
 
