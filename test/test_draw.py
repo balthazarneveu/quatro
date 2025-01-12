@@ -1,4 +1,4 @@
-from quatro.graphics.animation.butterfly import draw_butterfly
+from quatro.graphics.animation.butterfly_numpy import draw_butterfly
 import numpy as np
 
 

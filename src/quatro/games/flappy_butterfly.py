@@ -12,7 +12,7 @@ def update_physics_model(player: ControlledPlayer, trigger_jump=False, dt=0):
         player.velocity = player.velocity - 0.01 * 30 * 3 * 1000
     if player.y > 0:
         player.velocity = player.velocity + 0.01 / 10.0 * 2 * 1000
-    player.velocity = np.clip(player.velocity, -0.2*1000, None)  # keep within bounds
+    player.velocity = np.clip(player.velocity, -0.2 * 1000, None)  # keep within bounds
     player.y += player.velocity * dt
 
 
@@ -27,11 +27,20 @@ def launch_flappy_butterfly():
     player_pos = pygame.Vector2(w / 2, h / 2)
     player = Butterfly(*player_pos, size=80, color="orange", flap_speed=10)
     current_background = "sunset_field"
-    wheat_stalks = [Wheat(w // 2 + (random.randint(0, 1) - 0.5)*2 * (w//8 + random.randint(0, w//2)),
-                          h + random.randint(-50, 50),
-                          height=h/10,
-                          color=(245 + random.randint(-20, 10), 222 + random.randint(-5, 5), 179 + random.randint(-5, 5)))
-                    for _ in range(500)]
+    wheat_stalks = [
+        Wheat(
+            w // 2
+            + (random.randint(0, 1) - 0.5) * 2 * (w // 8 + random.randint(0, w // 2)),
+            h + random.randint(-50, 50),
+            height=h / 10,
+            color=(
+                245 + random.randint(-20, 10),
+                222 + random.randint(-5, 5),
+                179 + random.randint(-5, 5),
+            ),
+        )
+        for _ in range(500)
+    ]
 
     while running:
         # check for events and key presses to stop the application
@@ -48,14 +57,20 @@ def launch_flappy_butterfly():
 
         # draw a circle on the screen
         for wheat in wheat_stalks:
-            wheat.x = (wheat.x - w//2) * 1.005 + w//2
+            wheat.x = (wheat.x - w // 2) * 1.005 + w // 2
             if wheat.x < 0 or wheat.x > w:
-                wheat.x = w // 2 + (random.randint(0, 1) - 0.5)*2 * w//8 + random.randint(-w//16, w//16)
+                wheat.x = (
+                    w // 2
+                    + (random.randint(0, 1) - 0.5) * 2 * w // 8
+                    + random.randint(-w // 16, w // 16)
+                )
                 wheat.height = 2 * h / 3
 
             # wheat.height += 0.1
             WHEAT_MID_HEIGHT = h * 0.40
-            wheat.height = WHEAT_MID_HEIGHT + abs(wheat.x - w//2) / (w/2) * (WHEAT_MID_HEIGHT-1)
+            wheat.height = WHEAT_MID_HEIGHT + abs(wheat.x - w // 2) / (w / 2) * (
+                WHEAT_MID_HEIGHT - 1
+            )
             wheat.draw(screen, dt)
         player.draw(screen, dt=dt)
 

@@ -57,7 +57,9 @@ def place_butteffly(img, flapping_speed=10.0, state={}):
     x = state.get("x", 0.5)
     y = state.get("y", 0.5)
     time = state["time"]
-    draw_butterfly(out, time, x, y, flapping_speed=flapping_speed, size=5., color=[0.5, 0.0, 0.1])
+    draw_butterfly(
+        out, time, x, y, flapping_speed=flapping_speed, size=5.0, color=[0.5, 0.0, 0.1]
+    )
     return out
 
 
@@ -74,11 +76,11 @@ def draw_pipes(bg, pipe_speed=0.8, state={}):
     pipe_x = (1 - (time * pipe_speed) % 1) * (bg.shape[1] + pipe_width) - pipe_width
     pipe_y = (bg.shape[0] - pipe_height) // 2
     # Draw top pipe
-    out[0: pipe_y + pipe_height, int(pipe_x): int(pipe_x + pipe_width), :] = [0, 1, 0]
+    out[0 : pipe_y + pipe_height, int(pipe_x) : int(pipe_x + pipe_width), :] = [0, 1, 0]
 
     # Draw bottom pipe
     out[
-        pipe_y + pipe_height + pipe_gap: -1, int(pipe_x): int(pipe_x + pipe_width), :
+        pipe_y + pipe_height + pipe_gap : -1, int(pipe_x) : int(pipe_x + pipe_width), :
     ] = [0, 1, 0]
 
     return out
@@ -94,7 +96,9 @@ def flappy_pipe():
 
 
 def launch_flappy_pipe():
-    interactive(background_name=("sunset_field", list(BACKGROUNDS.keys())))(get_background)
+    interactive(background_name=("sunset_field", list(BACKGROUNDS.keys())))(
+        get_background
+    )
     interactive(flapping_speed=(10, [0.0, 20.0]))(place_butteffly)
     interactive(jump=KeyboardControl(False, name="jump", keydown=" "))(physics_model)
     interactive(time=TimeControl(update_interval_ms=10, pause_resume_key="p"))(get_time)

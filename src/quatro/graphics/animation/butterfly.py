@@ -17,9 +17,15 @@ class Butterfly(ControlledPlayer):
         time (float): Internal time counter for animation
     """
 
-    def __init__(self, x: int, y: int, velocity: float = 0, size: int = 20,
-                 color: Union[str, Tuple[int, int, int]] = (255, 255, 255),
-                 flap_speed: float = 5) -> None:
+    def __init__(
+        self,
+        x: int,
+        y: int,
+        velocity: float = 0,
+        size: int = 20,
+        color: Union[str, Tuple[int, int, int]] = (255, 255, 255),
+        flap_speed: float = 5,
+    ) -> None:
         """Initialize a new Butterfly instance.
 
         Args:
@@ -54,11 +60,11 @@ class Butterfly(ControlledPlayer):
         # Calculate wing endpoints
         left_wing_end = (
             self.x - int(self.size * math.cos(wing_angle)),
-            self.y - int(self.size * math.sin(wing_angle))
+            self.y - int(self.size * math.sin(wing_angle)),
         )
         right_wing_end = (
             self.x + int(self.size * math.cos(wing_angle)),
-            self.y - int(self.size * math.sin(wing_angle))
+            self.y - int(self.size * math.sin(wing_angle)),
         )
 
         # Draw wings (lines)

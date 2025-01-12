@@ -28,7 +28,9 @@ def draw_background(screen: pygame.display, background_image_path: Path) -> None
     if background_image is None:
         logging.info(f"load background {background_image}")
         background_image = pygame.image.load(background_image_path)
-        background_image = pygame.transform.scale(background_image, (width, heigth)).convert()
+        background_image = pygame.transform.scale(
+            background_image, (width, heigth)
+        ).convert()
         CACHED_IMAGES[key] = background_image
     screen.blit(background_image, (0, 0))
 
