@@ -1,9 +1,14 @@
 from quatro.games.flappy_butterfly_interactive_pipe import launch_flappy_pipe
 from quatro.games.flappy_butterfly import launch_flappy_butterfly
+from quatro.games.running_bunny import launch_running_bunny
 import argparse
 import sys
 
-GAMES_LIST = {"flappy": launch_flappy_butterfly, "flappy_pipe": launch_flappy_pipe}
+GAMES_LIST = {
+    "flappy": launch_flappy_butterfly,
+    "flappy_pipe": launch_flappy_pipe,
+    "bunny": launch_running_bunny,
+}
 GAMES_NAMES = list(GAMES_LIST.keys())
 
 
