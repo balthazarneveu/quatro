@@ -24,6 +24,11 @@ BACKGROUNDS = {
         + "with exaggerated and rounded features.",
         SIZE: (1792, 1024),
     },
+    "night_wheat_field": {
+        PATH: BACKGROUND_ASSETS / "night_field.webp",
+        DESCRIPTION: "A mystical wheat field at night in an artistic style suitable for a video game. The scene features less saturated colors for a subdued and mysterious look. A wide pathway runs prominently through the middle of the field, inviting exploration. The golden wheat, now muted in tone, sways gently under the faint glow of the starry night sky, which is expansive and moonless. The atmosphere is darker and more mysterious, with distant silhouettes of trees and hills adding depth to the scene. The style remains immersive and detailed, ideal for a fantasy or exploration video game.",  # noqa
+        SIZE: (1792, 1024),
+    },
 }
 
 if __name__ == "__main__":
