@@ -1,7 +1,6 @@
 import pygame
 import math
 from typing import Tuple, Union
-import time
 from quatro.control.control import ControlledPlayer
 
 

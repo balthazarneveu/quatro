@@ -3,6 +3,7 @@ from quatro.graphics.background import draw_background_from_asset
 from quatro.graphics.animation.butterfly import Butterfly
 from quatro.control.control import ControlledPlayer
 from quatro.graphics.animation.wheat import Wheat
+from quatro.system.quit import handle_quit
 import random
 import numpy as np
 
@@ -43,14 +44,9 @@ def launch_flappy_butterfly():
     ]
 
     while running:
-        # check for events and key presses to stop the application
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
         keys = pygame.key.get_pressed()
-        if keys[pygame.K_ESCAPE] or keys[pygame.K_q]:
-            running = False
-
+        keys = pygame.key.get_pressed()
+        running = handle_quit(keys)
         # fill the screen with an image
 
         draw_background_from_asset(screen, current_background)
