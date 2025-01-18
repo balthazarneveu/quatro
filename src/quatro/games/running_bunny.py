@@ -22,7 +22,7 @@ class Hole:
 camera = None
 
 
-class SandTrack:
+class MovingTrack:
     def __init__(
         self,
         num_planks=10,
@@ -37,11 +37,10 @@ class SandTrack:
         self.planks = [
             element_type(
                 z=z_source - (i / num_planks) * z_source,
-                # intensity=0.5 + i / num_planks,
                 intensity=0.5 + random.uniform(0.0, 0.5),
                 x=self.x_source
                 + random.uniform(-self.randomness_amplitude, self.randomness_amplitude),
-                plank_depth=z_source / num_planks,
+                z_size=z_source / num_planks,
             )
             for i in range(num_planks)
         ]
@@ -62,14 +61,14 @@ class SandTrack:
             plank.draw(screen)
 
 
-class Plank:
+class WallElement:
     def __init__(
         self,
         x: float = 0,  # => in the middle horizontally
         y: float = 0,  # => on the floor
         z: float = 10.0,  # => 10 units away from the screen
-        plank_depth: float = 5.0,
-        plank_width: float = 5.0,
+        z_size: float = 5.0,  # Depth of the plank
+        xy_size: float = 5.0,
         color=(139, 69, 19),
         intensity: float = 1.0,
     ):
@@ -77,14 +76,18 @@ class Plank:
         self.y = y
         self.z = z
         self.color = [_color * intensity for _color in color]
-        self.plank_depth = plank_depth
-        self.plank_width = plank_width
-        self.top = self.z + self.plank_depth / 2
+        self.z_size = z_size
+        self.xy_size = xy_size
+        self.back = self.z + self.z_size / 2
+        self.front = self.z - self.z_size / 2
 
     def out_of_screen(self):
         _, min_distance = camera.get_min_distance(pygame.Vector3(0.0, self.y, 0.0))
-        if self.top <= min_distance:
+        if self.back <= min_distance:
             return True
+
+    def get_coordinates(self):
+        raise NotImplementedError
 
     def draw(
         self,
@@ -92,47 +95,42 @@ class Plank:
     ):
         global camera
         # 3D plank coordinates
-        left = self.x - self.plank_width / 2
-        right = self.x + self.plank_width / 2
         _, min_distance = camera.get_min_distance(pygame.Vector3(0.0, self.y, 0.0))
-        self.top = self.z + self.plank_depth / 2
-        top = clip(self.top, min_distance, None)
-        bottom = clip(self.z - self.plank_depth / 2, min_distance, None)
-        tl = pygame.Vector3(left, self.y, top)
-        tr = pygame.Vector3(right, self.y, top)
-        br = pygame.Vector3(right, self.y, bottom)
-        bl = pygame.Vector3(left, self.y, bottom)
-        # 2D screen coordinates
-        pts_3d = [tl, tr, br, bl]
+        self.back = clip(self.z + self.z_size / 2, min_distance, None)
+        self.front = clip(self.z - self.z_size / 2, min_distance, None)
+
+        pts_3d = self.get_coordinates()
+
         # Visibility check
         if all([pt_3d.z >= 0 for pt_3d in pts_3d]):
             points = [camera.project(pt_3d) for pt_3d in pts_3d]
             pygame.draw.polygon(screen, self.color, points)
-        pass
 
 
-class Wall(Plank):
-    def draw(
-        self,
-        screen: pygame.Surface,
-    ):
-        global camera
-        self.top = self.z + self.plank_depth / 2
-        _, min_distance = camera.get_min_distance(pygame.Vector3(0.0, self.y, 0.0))
-        top = clip(self.top, min_distance, None)
-        bottom = clip(self.z - self.plank_depth / 2, min_distance, None)
+class Floor(WallElement):
+    def get_coordinates(self):
+        left = self.x - self.xy_size / 2
+        right = self.x + self.xy_size / 2
 
-        down = self.y
-        up = self.y + self.plank_width
-        tl = pygame.Vector3(self.x, down, top)
-        tr = pygame.Vector3(self.x, up, top)
-        br = pygame.Vector3(self.x, up, bottom)
-        bl = pygame.Vector3(self.x, down, bottom)
+        tl = pygame.Vector3(left, self.y, self.back)
+        tr = pygame.Vector3(right, self.y, self.back)
+        br = pygame.Vector3(right, self.y, self.front)
+        bl = pygame.Vector3(left, self.y, self.front)
+        # 2D screen coordinates
         pts_3d = [tl, tr, br, bl]
-        if all([pt_3d.z >= 0 for pt_3d in pts_3d]):
-            points = [camera.project(pt_3d) for pt_3d in pts_3d]
-            pygame.draw.polygon(screen, self.color, points)
-        pass
+        return pts_3d
+
+
+class Wall(WallElement):
+    def get_coordinates(self):
+        down = self.y
+        up = self.y + self.xy_size
+        tl = pygame.Vector3(self.x, down, self.back)
+        tr = pygame.Vector3(self.x, up, self.back)
+        br = pygame.Vector3(self.x, up, self.front)
+        bl = pygame.Vector3(self.x, down, self.front)
+        pts_3d = [tl, tr, br, bl]
+        return pts_3d
 
 
 def launch_running_bunny():
@@ -144,15 +142,15 @@ def launch_running_bunny():
     clock = pygame.time.Clock()
     running = True
     dt = 0
-    sandtrack = SandTrack(num_planks=70, z_source=10.0, element_type=Plank)
-    sidewalls_left = SandTrack(
+    sandtrack = MovingTrack(num_planks=70, z_source=10.0, element_type=Floor)
+    sidewalls_left = MovingTrack(
         num_planks=100,
         z_source=10.0,
         x_source=-3.5,
         randomness_amplitude=0,
         element_type=Wall,
     )
-    sidewalls_right = SandTrack(
+    sidewalls_right = MovingTrack(
         num_planks=100,
         z_source=10.0,
         x_source=3.5,
