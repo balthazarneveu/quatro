@@ -68,14 +68,16 @@ def clip(value, min_value, max_value):
 
 
 class SandTrack:
-    def __init__(self, num_planks=10, z_source=10.0):
+    def __init__(self, num_planks=10, z_source=10.0, randomness_amplitude=0.1):
         self.z_source = z_source
+        self.randomness_amplitude = randomness_amplitude
         self.planks = [
             Plank(
                 z=z_source - (i / num_planks) * z_source,
-                intensity=0.5 + i / num_planks,
-                x=random.uniform(-1, 1.0),
-                plank_depth=1.0,
+                # intensity=0.5 + i / num_planks,
+                intensity=0.5 + random.uniform(0.0, 0.5),
+                x=random.uniform(-self.randomness_amplitude, self.randomness_amplitude),
+                plank_depth=z_source / num_planks,
             )
             for i in range(num_planks)
         ]
@@ -86,7 +88,10 @@ class SandTrack:
             plank.z -= dt
             if plank.out_of_screen():
                 plank.z = self.z_source
-                plank.x = random.uniform(-1, 1)
+                plank.x = random.uniform(
+                    -self.randomness_amplitude, self.randomness_amplitude
+                )
+                self.intensity = 0.5 + random.uniform(0.0, 0.5)
 
     def draw(self, screen: pygame.Surface):
         for plank in self.planks:
@@ -100,7 +105,7 @@ class Plank:
         y: float = 0,  # => on the floor
         z: float = 10.0,  # => 10 units away from the screen
         plank_depth: float = 5.0,
-        plank_width: float = 3.0,
+        plank_width: float = 5.0,
         color=(139, 69, 19),
         intensity=1.0,
     ):
@@ -152,7 +157,7 @@ def launch_running_bunny():
     clock = pygame.time.Clock()
     running = True
     dt = 0
-    sandtrack = SandTrack()
+    sandtrack = SandTrack(num_planks=70, z_source=10.0)
 
     player_pos = pygame.Vector2(w / 2, 3 * h / 4)
     player = Bunny(*player_pos, size=50, animation_speed=10)
