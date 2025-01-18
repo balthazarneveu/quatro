@@ -52,6 +52,7 @@ class Bunny(ControlledPlayer):
         velocity: float = 0,
         size: int = 20,
         animation_speed: float = 40.0,
+        global_intensity: float = 0.8,
     ) -> None:
         """Initialize a new Bunny instance.
 
@@ -65,6 +66,7 @@ class Bunny(ControlledPlayer):
         self.previous_time = pygame.time.get_ticks() / 1000
         self.previous_phase = 0
         self.animation_speed = animation_speed
+        self.global_intensity = global_intensity
 
     def animate(self, dt: float = 0) -> None:
         current_phase = self.previous_phase + dt * self.animation_speed
@@ -83,6 +85,7 @@ class Bunny(ControlledPlayer):
             screen (pygame.Surface): The pygame surface to draw on
             dt (float, optional): External current_time value (unused). Defaults to 0.
         """
+
         self.animate(dt)
         self._draw_head(screen, y_offset=self.oscillate(-0.05, 0) * self.size)
         self._draw_ears(screen, angle=10 + self.oscillate(0, 10))
@@ -101,32 +104,41 @@ class Bunny(ControlledPlayer):
             intensity=0.95,
         )
 
-    def _draw_head(self, screen: pygame.Surface, y_offset=0) -> None:
+    def _draw_head(
+        self, screen: pygame.Surface, y_offset=0, intensity: float = 1.0
+    ) -> None:
+        intensity *= self.global_intensity
+        color = (intensity * 255, intensity * 255, intensity * 255)
         pygame.draw.circle(
-            screen, (255, 255, 255), (self.x, self.y + y_offset), 3 * self.size // 8
+            screen, color, (self.x, self.y + y_offset), 3 * self.size // 8
         )
 
-    def _draw_ears(self, screen: pygame.Surface, angle: float = 10) -> None:
+    def _draw_ears(
+        self, screen: pygame.Surface, angle: float = 10, intensity: float = 1.0
+    ) -> None:
+        intensity *= self.global_intensity
+        color = (intensity * 255, intensity * 255, intensity * 255)
         ear_width = self.size // 4
         ear_height = self.size
         left_ear_pos = (self.x - ear_width - ear_width // 2, self.y - ear_height)
         right_ear_pos = (self.x + ear_width // 2, self.y - ear_height)
         draw_ellipse_angle(
             screen,
-            (255, 255, 255),
+            color,
             (left_ear_pos[0], left_ear_pos[1], ear_width, ear_height),
             angle,
         )
         draw_ellipse_angle(
             screen,
-            (255, 255, 255),
+            color,
             (right_ear_pos[0], right_ear_pos[1], ear_width, ear_height),
             -angle,
         )
 
     def _draw_body(
-        self, screen: pygame.Surface, intensity=1, angle=0, tail_offset=0
+        self, screen: pygame.Surface, intensity: float = 1, angle=0, tail_offset=0
     ) -> None:
+        intensity *= self.global_intensity
         # Draw body as an elongated ellipse
         body_width = self.size * 3 // 4
         body_height = self.size * 1.2
@@ -162,6 +174,7 @@ class Bunny(ControlledPlayer):
     def _draw_legs(
         self, screen: pygame.Surface, intensity=1, leg_height_factor=1.0, angle=0
     ) -> None:
+        intensity *= self.global_intensity
         # Draw two legs as elongated ellipses
         leg_width = self.size // 4
         leg_height = self.size * 0.8 * leg_height_factor
@@ -184,6 +197,7 @@ class Bunny(ControlledPlayer):
         )
 
     def _draw_arm(self, screen: pygame.Surface, intensity=1, angle_offset=0) -> None:
+        intensity *= self.global_intensity
         # Draw two arms as elongated ellipses
         arm_width = self.size // 4
         arm_height = self.size * 0.8
