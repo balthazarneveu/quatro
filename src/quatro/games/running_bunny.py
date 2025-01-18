@@ -68,15 +68,24 @@ def clip(value, min_value, max_value):
 
 
 class SandTrack:
-    def __init__(self, num_planks=10, z_source=10.0, randomness_amplitude=0.1):
+    def __init__(
+        self,
+        num_planks=10,
+        x_source=0.0,
+        z_source=10.0,
+        randomness_amplitude=0.1,
+        element_type=None,
+    ):
         self.z_source = z_source
+        self.x_source = x_source
         self.randomness_amplitude = randomness_amplitude
         self.planks = [
-            Plank(
+            element_type(
                 z=z_source - (i / num_planks) * z_source,
                 # intensity=0.5 + i / num_planks,
                 intensity=0.5 + random.uniform(0.0, 0.5),
-                x=random.uniform(-self.randomness_amplitude, self.randomness_amplitude),
+                x=self.x_source
+                + random.uniform(-self.randomness_amplitude, self.randomness_amplitude),
                 plank_depth=z_source / num_planks,
             )
             for i in range(num_planks)
@@ -88,7 +97,7 @@ class SandTrack:
             plank.z -= dt
             if plank.out_of_screen():
                 plank.z = self.z_source
-                plank.x = random.uniform(
+                plank.x = self.x_source + random.uniform(
                     -self.randomness_amplitude, self.randomness_amplitude
                 )
                 self.intensity = 0.5 + random.uniform(0.0, 0.5)
@@ -107,7 +116,7 @@ class Plank:
         plank_depth: float = 5.0,
         plank_width: float = 5.0,
         color=(139, 69, 19),
-        intensity=1.0,
+        intensity: float = 1.0,
     ):
         self.x = x
         self.y = y
@@ -134,7 +143,6 @@ class Plank:
         self.top = self.z + self.plank_depth / 2
         top = clip(self.top, min_distance, None)
         bottom = clip(self.z - self.plank_depth / 2, min_distance, None)
-
         tl = pygame.Vector3(left, self.y, top)
         tr = pygame.Vector3(right, self.y, top)
         br = pygame.Vector3(right, self.y, bottom)
@@ -142,6 +150,30 @@ class Plank:
         # 2D screen coordinates
         pts_3d = [tl, tr, br, bl]
         # Visibility check
+        if all([pt_3d.z >= 0 for pt_3d in pts_3d]):
+            points = [camera.project(pt_3d) for pt_3d in pts_3d]
+            pygame.draw.polygon(screen, self.color, points)
+        pass
+
+
+class Wall(Plank):
+    def draw(
+        self,
+        screen: pygame.Surface,
+    ):
+        global camera
+        self.top = self.z + self.plank_depth / 2
+        _, min_distance = camera.get_min_distance(pygame.Vector3(0.0, self.y, 0.0))
+        top = clip(self.top, min_distance, None)
+        bottom = clip(self.z - self.plank_depth / 2, min_distance, None)
+
+        down = self.y
+        up = self.y + self.plank_width
+        tl = pygame.Vector3(self.x, down, top)
+        tr = pygame.Vector3(self.x, up, top)
+        br = pygame.Vector3(self.x, up, bottom)
+        bl = pygame.Vector3(self.x, down, bottom)
+        pts_3d = [tl, tr, br, bl]
         if all([pt_3d.z >= 0 for pt_3d in pts_3d]):
             points = [camera.project(pt_3d) for pt_3d in pts_3d]
             pygame.draw.polygon(screen, self.color, points)
@@ -157,8 +189,22 @@ def launch_running_bunny():
     clock = pygame.time.Clock()
     running = True
     dt = 0
-    sandtrack = SandTrack(num_planks=70, z_source=10.0)
-
+    sandtrack = SandTrack(num_planks=70, z_source=10.0, element_type=Plank)
+    sidewalls_left = SandTrack(
+        num_planks=100,
+        z_source=10.0,
+        x_source=-3.5,
+        randomness_amplitude=0,
+        element_type=Wall,
+    )
+    sidewalls_right = SandTrack(
+        num_planks=100,
+        z_source=10.0,
+        x_source=3.5,
+        randomness_amplitude=0,
+        element_type=Wall,
+    )
+    moving_tracks = [sandtrack, sidewalls_left, sidewalls_right]
     player_pos = pygame.Vector2(w / 2, 3 * h / 4)
     player = Bunny(*player_pos, size=50, animation_speed=10)
     current_background = "night_wheat_field"
@@ -166,9 +212,9 @@ def launch_running_bunny():
         keys = pygame.key.get_pressed()
         running = handle_quit(keys)
         draw_background_from_asset(screen, current_background)
-
-        sandtrack.move_planks(dt=dt)
-        sandtrack.draw(screen)
+        for moving_track in moving_tracks:
+            moving_track.move_planks(dt=dt)
+            moving_track.draw(screen)
         player.draw(screen, dt=dt)
 
         # Draw black holes
