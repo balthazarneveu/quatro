@@ -49,6 +49,12 @@ class Camera:
         out.y = clip(out.y, 0, self.h)
         return out
 
+    def get_min_distance(self, point: pygame.Vector3) -> pygame.Vector2:
+        relative_point = point - self.camera_position
+        min_dist_x_clip = relative_point.x * self.focal_length / (self.w / 2)
+        min_dist_y_clip = relative_point.y * self.focal_length / (self.h / 2)
+        return abs(min_dist_x_clip), abs(min_dist_y_clip)
+
 
 camera = None
 
@@ -78,7 +84,7 @@ class SandTrack:
         global camera
         for plank in self.planks:
             plank.z -= dt
-            if plank.z <= 0.5:
+            if plank.out_of_screen():
                 plank.z = self.z_source
                 plank.x = random.uniform(-1, 1)
 
@@ -104,6 +110,12 @@ class Plank:
         self.color = [_color * intensity for _color in color]
         self.plank_depth = plank_depth
         self.plank_width = plank_width
+        self.top = self.z + self.plank_depth / 2
+
+    def out_of_screen(self):
+        _, min_distance = camera.get_min_distance(pygame.Vector3(0.0, self.y, 0.0))
+        if self.top <= min_distance:
+            return True
 
     def draw(
         self,
@@ -113,8 +125,11 @@ class Plank:
         # 3D plank coordinates
         left = self.x - self.plank_width / 2
         right = self.x + self.plank_width / 2
-        top = clip(self.z + self.plank_depth / 2, camera.min_distance, None)
-        bottom = clip(self.z - self.plank_depth / 2, camera.min_distance, None)
+        _, min_distance = camera.get_min_distance(pygame.Vector3(0.0, self.y, 0.0))
+        self.top = self.z + self.plank_depth / 2
+        top = clip(self.top, min_distance, None)
+        bottom = clip(self.z - self.plank_depth / 2, min_distance, None)
+
         tl = pygame.Vector3(left, self.y, top)
         tr = pygame.Vector3(right, self.y, top)
         br = pygame.Vector3(right, self.y, bottom)
@@ -137,7 +152,6 @@ def launch_running_bunny():
     clock = pygame.time.Clock()
     running = True
     dt = 0
-    plank = Plank()
     sandtrack = SandTrack()
 
     player_pos = pygame.Vector2(w / 2, 3 * h / 4)
