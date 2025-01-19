@@ -162,7 +162,9 @@ def launch_running_bunny(resolution=(1280, 720)):
     CROP_TOP = 2.0
     WHEAT_COLOR = (245, 222, 179)
     moving_tracks = [
-        MovingTrack(num_planks=70, z_source=10.0, xy_size=TRACK_WIDTH*2, element_type=Floor)
+        MovingTrack(
+            num_planks=70, z_source=10.0, xy_size=TRACK_WIDTH * 2, element_type=Floor
+        )
     ]
 
     for sign in [-1, 1]:
@@ -201,12 +203,13 @@ def launch_running_bunny(resolution=(1280, 720)):
         for moving_track in moving_tracks:
             moving_track.move_planks(dt=dt)
             moving_track.draw(screen)
-        player.draw(screen, dt=dt)
 
         # Draw black holes
-        hole = Hole(600, 650)  # looks like  a shadow
+        hole = Hole(player.x, player.y + player.size * 1.8)  # looks like  a shadow
         hole.x = player.x
         hole.draw(screen)
+        player.draw(screen, dt=dt)
+
         # Game control update logic
         if keys[pygame.K_LEFT]:
             player.x -= 100 * dt
