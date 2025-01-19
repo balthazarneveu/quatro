@@ -23,7 +23,7 @@ class Hole:
 def launch_running_bunny(resolution=None):
     screen = init_screen(resolution)
     w, h = screen.get_width(), screen.get_height()
-    f_factor = 1
+    f_factor = 10.
     camera = Camera(
         x=0.0,
         y=4.0 * f_factor,
