@@ -158,21 +158,22 @@ def launch_running_bunny():
     clock = pygame.time.Clock()
     running = True
     dt = 0
-    moving_tracks = [
-        MovingTrack(num_planks=70, z_source=10.0, xy_size=6.5, element_type=Floor)
-    ]
+    TRACK_WIDTH = 5.0
     CROP_TOP = 2.0
-    TRACK_WIDTH = 3.0
     WHEAT_COLOR = (245, 222, 179)
+    moving_tracks = [
+        MovingTrack(num_planks=70, z_source=10.0, xy_size=TRACK_WIDTH*2, element_type=Floor)
+    ]
+
     for sign in [-1, 1]:
         moving_tracks.append(
             MovingTrack(
-                num_planks=100,
+                num_planks=70,
                 z_source=10.0,
                 x_source=sign * TRACK_WIDTH,
                 randomness_amplitude=0,
                 element_type=Wall,
-                # angle=sign * 20.0,
+                angle=sign * 5.0,
                 xy_size=CROP_TOP,
                 color=WHEAT_COLOR,
             )
@@ -181,7 +182,7 @@ def launch_running_bunny():
         CROP_TOP_SIZE = 200.0
         moving_tracks.append(
             MovingTrack(
-                num_planks=100,
+                num_planks=50,
                 y=CROP_TOP,
                 z_source=10.0,
                 x_source=sign * (TRACK_WIDTH + CROP_TOP_SIZE / 2),
