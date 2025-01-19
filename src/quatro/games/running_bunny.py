@@ -149,9 +149,9 @@ class Wall(WallElement):
         return pts_3d
 
 
-def launch_running_bunny():
+def launch_running_bunny(resolution=(1280, 720)):
     pygame.init()
-    screen = pygame.display.set_mode((1280, 720))
+    screen = pygame.display.set_mode(resolution)
     w, h = screen.get_width(), screen.get_height()
     global camera
     camera = Camera(x=0.0, y=2.0, z=0.0, focal_length=100.0, w=w, h=h)

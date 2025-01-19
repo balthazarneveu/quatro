@@ -95,7 +95,7 @@ def flappy_pipe():
     return out
 
 
-def launch_flappy_pipe():
+def launch_flappy_pipe(resolution=(1280, 720)):
     interactive(background_name=("sunset_field", list(BACKGROUNDS.keys())))(
         get_background
     )
@@ -103,7 +103,7 @@ def launch_flappy_pipe():
     interactive(jump=KeyboardControl(False, name="jump", keydown=" "))(physics_model)
     interactive(time=TimeControl(update_interval_ms=10, pause_resume_key="p"))(get_time)
     interactive(pipe_speed=(0.1, [0.0, 1.0]))(draw_pipes)
-    interactive_pipeline(gui="qt", cache=True, size="full")(flappy_pipe)()
+    interactive_pipeline(gui="qt", cache=True, size=resolution)(flappy_pipe)()
 
 
 if __name__ == "__main__":
