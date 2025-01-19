@@ -22,6 +22,8 @@ class Camera:
 
     def project(self, point: pygame.Vector3) -> pygame.Vector2:
         relative_point = point - self.camera_position
+        if relative_point.z <= 0:
+            return None
         out = (
             self.focal_length
             * pygame.Vector2(
