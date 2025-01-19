@@ -6,6 +6,7 @@ from quatro.engine.maths import clip
 from quatro.engine.pinhole_camera import Camera
 import random
 import math
+from collections import deque
 
 
 class Hole:
@@ -36,25 +37,30 @@ class MovingTrack:
         self.z_source = z_source
         self.x_source = x_source
         self.randomness_amplitude = randomness_amplitude
-        self.planks = [
-            element_type(
-                z=z_source - (i / num_planks) * z_source,
-                intensity=0.5 + random.uniform(0.0, 0.5),
-                x=self.x_source,
-                z_size=z_source / num_planks,
-                **kwargs,
-            )
-            for i in range(num_planks)
-        ]
+        self.planks = deque(
+            [
+                element_type(
+                    z=z_source - (i / num_planks) * z_source,
+                    intensity=0.5 + random.uniform(0.0, 0.5),
+                    x=self.x_source,
+                    z_size=z_source / num_planks,
+                    **kwargs,
+                )
+                for i in range(num_planks)
+            ]  # first element is the farthest from the screen (= the back)
+        )
 
     def move_planks(self, dt: float = 0.1):
         global camera
         for plank in self.planks:
             plank.z -= dt
-            if plank.out_of_screen():
-                plank.z = self.z_source
-                plank.x = self.x_source
-                self.intensity = 0.5 + random.uniform(0.0, 0.5)
+        if self.planks[-1].out_of_screen():
+            current_plank = self.planks.pop()
+            current_plank.z = self.planks[0].z + self.z_source / len(
+                self.planks
+            )  # Need an extra offset to put it behind the back plank
+            current_plank.x = self.x_source
+            self.planks.appendleft(current_plank)
 
     def draw(self, screen: pygame.Surface):
         for plank in self.planks:
@@ -157,6 +163,7 @@ def launch_running_bunny():
     ]
     CROP_TOP = 2.0
     TRACK_WIDTH = 3.0
+    WHEAT_COLOR = (245, 222, 179)
     for sign in [-1, 1]:
         moving_tracks.append(
             MovingTrack(
@@ -167,6 +174,7 @@ def launch_running_bunny():
                 element_type=Wall,
                 # angle=sign * 20.0,
                 xy_size=CROP_TOP,
+                color=WHEAT_COLOR,
             )
         )
     for sign in [-1, 1]:
@@ -179,7 +187,7 @@ def launch_running_bunny():
                 x_source=sign * (TRACK_WIDTH + CROP_TOP_SIZE / 2),
                 xy_size=CROP_TOP_SIZE,
                 element_type=Floor,
-                color=(128, 255, 128),
+                color=WHEAT_COLOR,
             )
         )
     player_pos = pygame.Vector2(w / 2, 3 * h / 4)
