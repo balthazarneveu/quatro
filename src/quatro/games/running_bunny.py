@@ -5,6 +5,7 @@ from quatro.system.quit import handle_quit
 from quatro.engine.maths import clip
 from quatro.engine.pinhole_camera import Camera
 import random
+import math
 
 
 class Hole:
@@ -28,8 +29,9 @@ class MovingTrack:
         num_planks=10,
         x_source=0.0,
         z_source=10.0,
-        randomness_amplitude=0.1,
+        randomness_amplitude=0.0,
         element_type=None,
+        **kwargs,
     ):
         self.z_source = z_source
         self.x_source = x_source
@@ -38,9 +40,9 @@ class MovingTrack:
             element_type(
                 z=z_source - (i / num_planks) * z_source,
                 intensity=0.5 + random.uniform(0.0, 0.5),
-                x=self.x_source
-                + random.uniform(-self.randomness_amplitude, self.randomness_amplitude),
+                x=self.x_source,
                 z_size=z_source / num_planks,
+                **kwargs,
             )
             for i in range(num_planks)
         ]
@@ -51,9 +53,7 @@ class MovingTrack:
             plank.z -= dt
             if plank.out_of_screen():
                 plank.z = self.z_source
-                plank.x = self.x_source + random.uniform(
-                    -self.randomness_amplitude, self.randomness_amplitude
-                )
+                plank.x = self.x_source
                 self.intensity = 0.5 + random.uniform(0.0, 0.5)
 
     def draw(self, screen: pygame.Surface):
@@ -71,6 +71,7 @@ class WallElement:
         xy_size: float = 5.0,
         color=(139, 69, 19),
         intensity: float = 1.0,
+        angle=0.0,
     ):
         self.x = x
         self.y = y
@@ -80,11 +81,18 @@ class WallElement:
         self.xy_size = xy_size
         self.back = self.z + self.z_size / 2
         self.front = self.z - self.z_size / 2
+        self.angle = angle
 
     def out_of_screen(self):
-        _, min_distance = camera.get_min_distance(pygame.Vector3(0.0, self.y, 0.0))
-        if self.back <= min_distance:
+        min_distance_z = self.get_min_distance()
+        if self.back <= min_distance_z:
             return True
+
+    def get_min_distance(self):
+        min_distance_x, min_distance_y = camera.get_min_distance(
+            pygame.Vector3(self.x, self.y, 0.0)
+        )
+        return min(min_distance_x, min_distance_y)
 
     def get_coordinates(self):
         raise NotImplementedError
@@ -95,7 +103,7 @@ class WallElement:
     ):
         global camera
         # 3D plank coordinates
-        _, min_distance = camera.get_min_distance(pygame.Vector3(0.0, self.y, 0.0))
+        min_distance = self.get_min_distance()
         self.back = clip(self.z + self.z_size / 2, min_distance, None)
         self.front = clip(self.z - self.z_size / 2, min_distance, None)
 
@@ -104,6 +112,8 @@ class WallElement:
         # Visibility check
         if all([pt_3d.z >= 0 for pt_3d in pts_3d]):
             points = [camera.project(pt_3d) for pt_3d in pts_3d]
+            if None in points:
+                return
             pygame.draw.polygon(screen, self.color, points)
 
 
@@ -116,7 +126,6 @@ class Floor(WallElement):
         tr = pygame.Vector3(right, self.y, self.back)
         br = pygame.Vector3(right, self.y, self.front)
         bl = pygame.Vector3(left, self.y, self.front)
-        # 2D screen coordinates
         pts_3d = [tl, tr, br, bl]
         return pts_3d
 
@@ -124,10 +133,11 @@ class Floor(WallElement):
 class Wall(WallElement):
     def get_coordinates(self):
         down = self.y
-        up = self.y + self.xy_size
+        up = self.y + math.cos(math.radians(self.angle)) * self.xy_size
+        x_offset = math.sin(math.radians(self.angle)) * self.xy_size
         tl = pygame.Vector3(self.x, down, self.back)
-        tr = pygame.Vector3(self.x, up, self.back)
-        br = pygame.Vector3(self.x, up, self.front)
+        tr = pygame.Vector3(self.x + x_offset, up, self.back)
+        br = pygame.Vector3(self.x + x_offset, up, self.front)
         bl = pygame.Vector3(self.x, down, self.front)
         pts_3d = [tl, tr, br, bl]
         return pts_3d
@@ -138,26 +148,40 @@ def launch_running_bunny():
     screen = pygame.display.set_mode((1280, 720))
     w, h = screen.get_width(), screen.get_height()
     global camera
-    camera = Camera(x=0, y=2.0, z=0, focal_length=100.0, w=w, h=h)
+    camera = Camera(x=0.0, y=2.0, z=0.0, focal_length=100.0, w=w, h=h)
     clock = pygame.time.Clock()
     running = True
     dt = 0
-    sandtrack = MovingTrack(num_planks=70, z_source=10.0, element_type=Floor)
-    sidewalls_left = MovingTrack(
-        num_planks=100,
-        z_source=10.0,
-        x_source=-3.5,
-        randomness_amplitude=0,
-        element_type=Wall,
-    )
-    sidewalls_right = MovingTrack(
-        num_planks=100,
-        z_source=10.0,
-        x_source=3.5,
-        randomness_amplitude=0,
-        element_type=Wall,
-    )
-    moving_tracks = [sandtrack, sidewalls_left, sidewalls_right]
+    moving_tracks = [
+        MovingTrack(num_planks=70, z_source=10.0, xy_size=6.5, element_type=Floor)
+    ]
+    CROP_TOP = 2.0
+    TRACK_WIDTH = 3.0
+    for sign in [-1, 1]:
+        moving_tracks.append(
+            MovingTrack(
+                num_planks=100,
+                z_source=10.0,
+                x_source=sign * TRACK_WIDTH,
+                randomness_amplitude=0,
+                element_type=Wall,
+                # angle=sign * 20.0,
+                xy_size=CROP_TOP,
+            )
+        )
+    for sign in [-1, 1]:
+        CROP_TOP_SIZE = 200.0
+        moving_tracks.append(
+            MovingTrack(
+                num_planks=100,
+                y=CROP_TOP,
+                z_source=10.0,
+                x_source=sign * (TRACK_WIDTH + CROP_TOP_SIZE / 2),
+                xy_size=CROP_TOP_SIZE,
+                element_type=Floor,
+                color=(128, 255, 128),
+            )
+        )
     player_pos = pygame.Vector2(w / 2, 3 * h / 4)
     player = Bunny(*player_pos, size=50, animation_speed=10)
     current_background = "night_wheat_field"
@@ -180,6 +204,12 @@ def launch_running_bunny():
 
         if keys[pygame.K_RIGHT]:
             player.x += 100 * dt
+
+        if keys[pygame.K_UP]:
+            camera.camera_position.y += 1.0 * dt
+        if keys[pygame.K_DOWN]:
+            camera.camera_position.y -= 1.0 * dt
+
         pygame.display.flip()
 
         dt = clock.tick(60) / 1000
