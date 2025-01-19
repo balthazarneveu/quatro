@@ -2,6 +2,7 @@ import pygame
 from quatro.graphics.background import draw_background_from_asset
 from quatro.graphics.animation.bunny import Bunny
 from quatro.system.quit import handle_quit
+from quatro.system.window import init_screen
 from quatro.engine.planes import Floor, Wall
 from quatro.engine.endless_track import MovingTrack
 from quatro.engine.pinhole_camera import Camera
@@ -19,9 +20,8 @@ class Hole:
         )
 
 
-def launch_running_bunny(resolution=(1280, 720)):
-    pygame.init()
-    screen = pygame.display.set_mode(resolution)
+def launch_running_bunny(resolution=None):
+    screen = init_screen(resolution)
     w, h = screen.get_width(), screen.get_height()
     camera = Camera(x=0.0, y=2.0, z=0.0, focal_length=100.0, w=w, h=h)
     clock = pygame.time.Clock()

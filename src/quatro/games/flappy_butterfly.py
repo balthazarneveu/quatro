@@ -4,6 +4,7 @@ from quatro.graphics.animation.butterfly import Butterfly
 from quatro.control.control import ControlledPlayer
 from quatro.graphics.animation.wheat import Wheat
 from quatro.system.quit import handle_quit
+from quatro.system.window import init_screen
 import random
 import numpy as np
 
@@ -19,8 +20,7 @@ def update_physics_model(player: ControlledPlayer, trigger_jump=False, dt=0):
 
 def launch_flappy_butterfly(resolution=(1280, 720)):
     # pygame setup
-    pygame.init()
-    screen = pygame.display.set_mode(resolution)
+    screen = init_screen(resolution)
     clock = pygame.time.Clock()
     running = True
     dt = 0
