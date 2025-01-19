@@ -23,17 +23,29 @@ class Hole:
 def launch_running_bunny(resolution=None):
     screen = init_screen(resolution)
     w, h = screen.get_width(), screen.get_height()
-    camera = Camera(x=0.0, y=2.0, z=0.0, focal_length=100.0, w=w, h=h)
+    f_factor = 1
+    camera = Camera(
+        x=0.0,
+        y=4.0 * f_factor,
+        z=0.0,
+        focal_length=100.0 * f_factor,
+        w=w,
+        h=h,
+        pitch=-18.0,
+    )
     clock = pygame.time.Clock()
     running = True
     dt = 0
-    TRACK_WIDTH = 5.0
-    CROP_TOP = 2.0
+    speed = 1.0 * f_factor
+    TRACK_WIDTH = 3.0 * f_factor
+    CROP_TOP = 2.0 * f_factor
+    Z_SOURCE = 30.0 * f_factor
     WHEAT_COLOR = (245, 222, 179)
     moving_tracks = [
         MovingTrack(
-            num_planks=70,
-            z_source=10.0,
+            speed=speed,
+            num_planks=50,
+            z_source=Z_SOURCE * 1.5,
             xy_size=TRACK_WIDTH * 2,
             element_type=Floor,
             camera=camera,
@@ -43,8 +55,9 @@ def launch_running_bunny(resolution=None):
     for sign in [-1, 1]:
         moving_tracks.append(
             MovingTrack(
+                speed=speed,
                 num_planks=70,
-                z_source=10.0,
+                z_source=Z_SOURCE,
                 x_source=sign * TRACK_WIDTH,
                 randomness_amplitude=0,
                 element_type=Wall,
@@ -58,9 +71,10 @@ def launch_running_bunny(resolution=None):
         CROP_TOP_SIZE = 200.0
         moving_tracks.append(
             MovingTrack(
+                speed=speed,
                 num_planks=50,
                 y=CROP_TOP,
-                z_source=10.0,
+                z_source=Z_SOURCE,
                 x_source=sign * (TRACK_WIDTH + CROP_TOP_SIZE / 2),
                 xy_size=CROP_TOP_SIZE,
                 element_type=Floor,
@@ -93,9 +107,13 @@ def launch_running_bunny(resolution=None):
             player.x += 100 * dt
 
         if keys[pygame.K_UP]:
-            camera.camera_position.y += 1.0 * dt
+            camera.camera_position.y += 1.0 * f_factor * dt
         if keys[pygame.K_DOWN]:
-            camera.camera_position.y -= 1.0 * dt
+            camera.camera_position.y -= 1.0 * f_factor * dt
+        if keys[pygame.K_PAGEDOWN]:
+            camera.pitch += 20.0 * dt
+        if keys[pygame.K_PAGEUP]:
+            camera.pitch -= 20.0 * dt
 
         pygame.display.flip()
 

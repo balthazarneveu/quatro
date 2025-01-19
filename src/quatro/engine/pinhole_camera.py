@@ -1,5 +1,57 @@
 import pygame
 from quatro.engine.maths import clip
+import math
+import numpy as np
+
+
+def rotate_point_around_axis(point, axis, angle_degree):
+    angle = math.radians(angle_degree)
+    if axis == "x":
+        rotation_matrix = np.array(
+            [
+                1,
+                0,
+                0,
+                0,
+                math.cos(angle),
+                -math.sin(angle),
+                0,
+                math.sin(angle),
+                math.cos(angle),
+            ]
+        ).reshape(3, 3)
+    elif axis == "y":
+        rotation_matrix = np.array(
+            [
+                math.cos(angle),
+                0,
+                math.sin(angle),
+                0,
+                1,
+                0,
+                -math.sin(angle),
+                0,
+                math.cos(angle),
+            ]
+        ).reshape(3, 3)
+    elif axis == "z":
+        rotation_matrix = np.array(
+            [
+                math.cos(angle),
+                -math.sin(angle),
+                0,
+                math.sin(angle),
+                math.cos(angle),
+                0,
+                0,
+                0,
+                1,
+            ]
+        ).reshape(3, 3)
+    else:
+        raise ValueError("Axis must be 'x', 'y', or 'z'")
+
+    return pygame.Vector3(*np.dot(rotation_matrix, point))
 
 
 class Camera:
@@ -11,17 +63,18 @@ class Camera:
         focal_length: float = 1.0,
         w: float = 1280,
         h: float = 720,
-        min_distance=0.2,
+        pitch: float = 0.0,
     ):
         self.camera_position = pygame.Vector3(x, y, z)
         self.focal_length = focal_length
         self.screen_center = pygame.Vector2(w / 2, h / 2)
         self.w = w
         self.h = h
-        self.min_distance = min_distance
+        self.pitch = pitch
 
     def project(self, point: pygame.Vector3) -> pygame.Vector2:
         relative_point = point - self.camera_position
+        relative_point = rotate_point_around_axis(relative_point, "x", self.pitch)
         if relative_point.z <= 0:
             return None
         out = (

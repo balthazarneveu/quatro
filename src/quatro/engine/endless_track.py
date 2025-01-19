@@ -11,6 +11,7 @@ class MovingTrack:
         z_source=10.0,
         randomness_amplitude=0.0,
         element_type=None,
+        speed=1.0,
         **kwargs,
     ):
         self.z_source = z_source
@@ -28,11 +29,12 @@ class MovingTrack:
                 for i in range(num_planks)
             ]  # first element is the farthest from the screen (= the back)
         )
+        self.speed = speed
 
     def move_planks(self, dt: float = 0.1):
         global camera
         for plank in self.planks:
-            plank.z -= dt
+            plank.z -= self.speed * dt
         if self.planks[-1].out_of_screen():
             current_plank = self.planks.pop()
             current_plank.z = self.planks[0].z + self.z_source / len(
