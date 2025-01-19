@@ -28,6 +28,24 @@ def draw_background(screen: pygame.display, background_image_path: Path) -> None
     if background_image is None:
         logging.info(f"load background {background_image}")
         background_image = pygame.image.load(background_image_path)
+        image_width, image_height = background_image.get_size()
+        target_aspect = width / heigth
+        image_aspect = image_width / image_height
+
+        if image_aspect > target_aspect:
+            # Image is wider than target aspect ratio, crop the sides
+            new_width = int(image_height * target_aspect)
+            offset = (image_width - new_width) // 2
+            background_image = background_image.subsurface(
+                (offset, 0, new_width, image_height)
+            )
+        elif image_aspect < target_aspect:
+            # Image is taller than target aspect ratio, crop the top and bottom
+            new_height = int(image_width / target_aspect)
+            offset = (image_height - new_height) // 2
+            background_image = background_image.subsurface(
+                (0, offset, image_width, new_height)
+            )
         background_image = pygame.transform.scale(
             background_image, (width, heigth)
         ).convert()
