@@ -9,7 +9,7 @@ from quatro.engine.pinhole_camera import Camera
 from math import sin, radians
 
 
-class Hole:
+class Shadow:
     def __init__(self, x, y, z=0):
         self.x = x
         self.y = y
@@ -22,6 +22,10 @@ class Hole:
 
 
 class Carrot(FacingWall):
+    def __init__(self, *args, score_multiplier=1, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.score_multiplier = score_multiplier
+
     def get_coordinates(self):
         pts_3d = super().get_coordinates()
         top = (pts_3d[0] + pts_3d[1]) / 2.0
@@ -182,24 +186,28 @@ def launch_running_bunny(resolution=None):
         for moving_track in moving_tracks + moving_elements:
             moving_track.move(dt=dt)
             moving_track.draw(screen)
+
         for reward_elements in moving_elements:
             for reward_element in reward_elements.elements:
                 if reward_element.collide(player.bounding_box, screen=None):
-                    score += 1
+                    score += reward_element.score_multiplier * 1
+                    if reward_element.score_multiplier < 0:
+                        player.x += TRACK_WIDTH * dt * 100 * 2
+
         # Draw black holes
-        hole = Hole(player.x, player.y + player.size * 1.8)  # looks like  a shadow
-        hole.x = player.x
-        hole.draw(screen)
+        shadow = Shadow(player.x, player.y + player.size * 1.8)  # looks like  a shadow
+        shadow.x = player.x
+        shadow.draw(screen)
         player.draw(screen, dt=dt)
 
         draw_carrot_gauge(screen, score, max_score, position=(10, 10), size=(200, 30))
 
         # Game control update logic
         if keys[pygame.K_LEFT]:
-            player.x -= 100 * dt
+            player.x -= speed / f_factor * 100 * dt
 
         if keys[pygame.K_RIGHT]:
-            player.x += 100 * dt
+            player.x += speed / f_factor * 100 * dt
 
         if keys[pygame.K_UP]:
             camera.camera_position.y += 1.0 * f_factor * dt
