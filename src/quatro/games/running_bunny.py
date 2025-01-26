@@ -65,6 +65,27 @@ class Carrot(FacingWall):
         return collision
 
 
+def draw_carrot_gauge(screen, score, max_score, position, size):
+    """Draw a carrot-shaped gauge bar.
+
+    Args:
+        screen (pygame.Surface): The pygame surface to draw on
+        score (int): Current score
+        max_score (int): Maximum score
+        position (tuple): (x, y) position of the gauge
+        size (tuple): (width, height) of the gauge
+    """
+    x, y = position
+    width, height = size
+    carrot_color = (255, 165, 0)  # orange color with transparency
+
+    # Draw the filled part of the gauge
+    filled_width = width * min((score / max_score), 1)
+    pygame.draw.rect(screen, (255, 69, 0), (x, y, filled_width, height))
+    # Draw the carrot body
+    pygame.draw.rect(screen, carrot_color, (x, y, width, height), 1)
+
+
 def launch_running_bunny(resolution=None):
     screen = init_screen(resolution)
     w, h = screen.get_width(), screen.get_height()
@@ -87,6 +108,7 @@ def launch_running_bunny(resolution=None):
     Z_SOURCE = 30.0 * f_factor
     WHEAT_COLOR = (245, 222, 179)
     score = 0
+    max_score = 10  # Set the maximum score for the gauge
     moving_tracks = [
         MovingTrack(
             speed=speed,
@@ -164,6 +186,8 @@ def launch_running_bunny(resolution=None):
         hole.x = player.x
         hole.draw(screen)
         player.draw(screen, dt=dt)
+
+        draw_carrot_gauge(screen, score, max_score, position=(10, 10), size=(200, 30))
 
         # Game control update logic
         if keys[pygame.K_LEFT]:
