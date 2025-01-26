@@ -22,7 +22,9 @@ class WallElement:
         self.z = z
         self.color = [_color * intensity for _color in color]
         self.z_size = z_size
-        self.xy_size = xy_size
+        self.xy_size = (
+            xy_size if isinstance(xy_size, (list, tuple)) else [xy_size, xy_size]
+        )
         self.back = self.z + self.z_size / 2
         self.front = self.z - self.z_size / 2
         self.angle = angle
@@ -107,8 +109,8 @@ class WallElement:
 
 class Floor(WallElement):
     def get_coordinates(self):
-        left = self.x - self.xy_size / 2
-        right = self.x + self.xy_size / 2
+        left = self.x - self.xy_size[0] / 2
+        right = self.x + self.xy_size[0] / 2
 
         tl = pygame.Vector3(left, self.y, self.back)
         tr = pygame.Vector3(right, self.y, self.back)
@@ -121,8 +123,8 @@ class Floor(WallElement):
 class Wall(WallElement):
     def get_coordinates(self):
         down = self.y
-        up = self.y + math.cos(math.radians(self.angle)) * self.xy_size
-        x_offset = math.sin(math.radians(self.angle)) * self.xy_size
+        up = self.y + math.cos(math.radians(self.angle)) * self.xy_size[1]
+        x_offset = math.sin(math.radians(self.angle)) * self.xy_size[0]
         tl = pygame.Vector3(self.x, down, self.back)
         tr = pygame.Vector3(self.x + x_offset, up, self.back)
         br = pygame.Vector3(self.x + x_offset, up, self.front)
