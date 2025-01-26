@@ -6,6 +6,7 @@ from quatro.system.window import init_screen
 from quatro.engine.planes import Floor, Wall, FacingWall
 from quatro.engine.endless_track import MovingTrack, MovingElement
 from quatro.engine.pinhole_camera import Camera
+from math import sin, radians
 
 
 class Hole:
@@ -23,9 +24,33 @@ class Hole:
 class Carrot(FacingWall):
     def get_coordinates(self):
         pts_3d = super().get_coordinates()
+        top = (pts_3d[0] + pts_3d[1]) / 2.0
         br, bl = pts_3d[2], pts_3d[3]
-        pts_3d = pts_3d[:2] + [(br + bl) / 2.0]
-        return pts_3d
+        pts_3d_triangle = pts_3d[:2] + [(br + bl) / 2.0]
+        geometry = [
+            {
+                "type": "poly",
+                "content": pts_3d_triangle,
+            }
+        ]
+        for angle in [-20, 20]:
+            leaf_size = self.xy_size[1] * 0.7
+            leaf = {
+                "type": "ellipse",
+                "content": {
+                    "color": (0, 100, 0),  # dark green color
+                    "center": top
+                    + pygame.Vector3(
+                        sin(radians(-angle)) * leaf_size / 2.0, leaf_size / 2.0, 0
+                    ),
+                    "size_x": leaf_size * 0.2,
+                    "size_y": leaf_size,
+                    "angle": angle,
+                    "width": 0,
+                },
+            }
+            geometry.append(leaf)
+        return geometry
 
 
 def launch_running_bunny(resolution=None):
