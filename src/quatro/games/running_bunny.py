@@ -3,8 +3,8 @@ from quatro.graphics.background import draw_background_from_asset
 from quatro.graphics.animation.bunny import Bunny
 from quatro.system.quit import handle_quit
 from quatro.system.window import init_screen
-from quatro.engine.planes import Floor, Wall
-from quatro.engine.endless_track import MovingTrack
+from quatro.engine.planes import Floor, Wall, FacingWall
+from quatro.engine.endless_track import MovingTrack, MovingElement
 from quatro.engine.pinhole_camera import Camera
 
 
@@ -82,6 +82,21 @@ def launch_running_bunny(resolution=None):
                 camera=camera,
             )
         )
+    moving_tracks.append(
+        MovingElement(
+            speed=speed,
+            num_elements=10,
+            y=0.0 * CROP_TOP,
+            z_source=Z_SOURCE,
+            x_range=[-TRACK_WIDTH, TRACK_WIDTH],
+            xy_size=0.5 * TRACK_WIDTH,
+            z_size=0.0,
+            element_type=FacingWall,
+            color=(255, 0, 0),
+            camera=camera,
+        )
+    )
+
     player_pos = pygame.Vector2(w / 2, 3 * h / 4)
     player = Bunny(*player_pos, size=50, animation_speed=10)
     current_background = "night_wheat_field"

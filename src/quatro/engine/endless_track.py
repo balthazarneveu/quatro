@@ -48,3 +48,36 @@ class MovingTrack:
     def draw(self, screen: pygame.Surface):
         for element in self.elements:
             element.draw(screen)
+
+
+class MovingElement:
+    def __init__(
+        self,
+        z_source=10.0,
+        x_range=[-1, 1],
+        num_elements=10,
+        speed=MOVING_TRACK_SPEED,
+        element_type=None,
+        **kwargs,
+    ):
+        self.speed = speed
+        self.z_source = z_source
+        self.xrange = x_range
+        self.elements = deque()
+        for i in range(num_elements):
+            z_value = z_source - (i / num_elements) * z_source
+            x_value = random.uniform(x_range[0], x_range[1])
+            self.elements.append(element_type(x=x_value, z=z_value, **kwargs))
+
+    def move(self, dt: float = 0.1):
+        for plank in self.elements:
+            plank.z -= self.speed * dt
+        if self.elements[-1].out_of_screen():
+            current_plank = self.elements.pop()
+            current_plank.z = self.elements[0].z + self.z_source / len(self.elements)
+            current_plank.x = random.uniform(self.xrange[0], self.xrange[1])
+            self.elements.appendleft(current_plank)
+
+    def draw(self, screen: pygame.Surface):
+        for element in self.elements:
+            element.draw(screen)

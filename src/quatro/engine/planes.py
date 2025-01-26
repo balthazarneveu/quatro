@@ -84,3 +84,17 @@ class Wall(WallElement):
         bl = pygame.Vector3(self.x, down, self.front)
         pts_3d = [tl, tr, br, bl]
         return pts_3d
+
+
+class FacingWall(WallElement):
+    def get_coordinates(self):
+        left = self.x - self.xy_size / 2
+        right = self.x + self.xy_size / 2
+        down = self.y
+        up = self.y + self.xy_size
+        tl = pygame.Vector3(left, up, self.back)
+        tr = pygame.Vector3(right, up, self.back)
+        br = pygame.Vector3(right, down, self.back)
+        bl = pygame.Vector3(left, down, self.back)
+        pts_3d = [tl, tr, br, bl]
+        return pts_3d
