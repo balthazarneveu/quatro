@@ -52,6 +52,18 @@ class Carrot(FacingWall):
             geometry.append(leaf)
         return geometry
 
+    def collide(self, player_bounding_box: pygame.Rect, screen: pygame.Surface = None):
+        if screen:
+            if self.visible:
+                pygame.draw.rect(screen, (255, 0, 0), self.bounding_box, 2)
+            pygame.draw.rect(screen, (0, 255, 0), player_bounding_box, 2)
+        collision = self.bounding_box.colliderect(player_bounding_box)
+        if not self.visible:
+            collision = False
+        if collision:
+            self.visible = False
+        return collision
+
 
 def launch_running_bunny(resolution=None):
     screen = init_screen(resolution)
@@ -74,6 +86,7 @@ def launch_running_bunny(resolution=None):
     CROP_TOP = 2.0 * f_factor
     Z_SOURCE = 30.0 * f_factor
     WHEAT_COLOR = (245, 222, 179)
+    score = 0
     moving_tracks = [
         MovingTrack(
             speed=speed,
@@ -84,6 +97,7 @@ def launch_running_bunny(resolution=None):
             camera=camera,
         )
     ]
+    moving_elements = []
 
     for sign in [-1, 1]:
         moving_tracks.append(
@@ -115,7 +129,8 @@ def launch_running_bunny(resolution=None):
                 camera=camera,
             )
         )
-    moving_tracks.append(
+
+    moving_elements.append(
         MovingElement(
             speed=speed,
             num_elements=10,
@@ -137,10 +152,13 @@ def launch_running_bunny(resolution=None):
         keys = pygame.key.get_pressed()
         running = handle_quit(keys)
         draw_background_from_asset(screen, current_background)
-        for moving_track in moving_tracks:
+        for moving_track in moving_tracks + moving_elements:
             moving_track.move(dt=dt)
             moving_track.draw(screen)
-
+        for reward_elements in moving_elements:
+            for reward_element in reward_elements.elements:
+                if reward_element.collide(player.bounding_box, screen=None):
+                    score += 1
         # Draw black holes
         hole = Hole(player.x, player.y + player.size * 1.8)  # looks like  a shadow
         hole.x = player.x

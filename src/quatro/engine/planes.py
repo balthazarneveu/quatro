@@ -27,6 +27,7 @@ class WallElement:
         self.front = self.z - self.z_size / 2
         self.angle = angle
         self.camera = camera
+        self.visible = True
 
     def out_of_screen(self):
         min_distance_z = self.get_min_distance()
@@ -50,7 +51,8 @@ class WallElement:
         min_distance = self.get_min_distance()
         self.back = clip(self.z + self.z_size / 2, min_distance, None)
         self.front = clip(self.z - self.z_size / 2, min_distance, None)
-
+        if not self.visible:
+            return
         elements_to_draw = self.get_coordinates()
         if isinstance(elements_to_draw, list) and not isinstance(
             elements_to_draw[0], dict
@@ -69,6 +71,12 @@ class WallElement:
                     if None in points:
                         continue
                     pygame.draw.polygon(screen, self.color, points)
+                    self.bounding_box = pygame.Rect(
+                        min([pt.x for pt in points]),
+                        min([pt.y for pt in points]),
+                        max([pt.x for pt in points]) - min([pt.x for pt in points]),
+                        max([pt.y for pt in points]) - min([pt.y for pt in points]),
+                    )
             if geometry_type == "ellipse":
                 content = element_to_draw["content"]
                 center_3d = content["center"]

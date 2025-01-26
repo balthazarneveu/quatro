@@ -73,10 +73,11 @@ class MovingElement:
         for plank in self.elements:
             plank.z -= self.speed * dt
         if self.elements[-1].out_of_screen():
-            current_plank = self.elements.pop()
-            current_plank.z = self.elements[0].z + self.z_source / len(self.elements)
-            current_plank.x = random.uniform(self.xrange[0], self.xrange[1])
-            self.elements.appendleft(current_plank)
+            current_element = self.elements.pop()
+            current_element.z = self.elements[0].z + self.z_source / len(self.elements)
+            current_element.x = random.uniform(self.xrange[0], self.xrange[1])
+            current_element.visible = True
+            self.elements.appendleft(current_element)
 
     def draw(self, screen: pygame.Surface):
         for element in self.elements:

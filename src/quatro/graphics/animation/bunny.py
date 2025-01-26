@@ -36,6 +36,16 @@ class Bunny(ControlledPlayer):
         self.previous_phase = 0
         self.animation_speed = animation_speed
         self.global_intensity = global_intensity
+        self.get_bounding_box()
+
+    def get_bounding_box(self):
+        extension = 1.2
+        self.bounding_box = pygame.Rect(
+            self.x - extension * self.size // 2,
+            self.y - self.size,
+            extension * self.size,
+            self.size * 3,
+        )
 
     def animate(self, dt: float = 0) -> None:
         current_phase = self.previous_phase + dt * self.animation_speed
@@ -72,6 +82,7 @@ class Bunny(ControlledPlayer):
             tail_offset=self.oscillate(-1, 1, speed=-1) * self.size * 0.02,
             intensity=0.95,
         )
+        self.get_bounding_box()
 
     def _draw_head(
         self, screen: pygame.Surface, y_offset=0, intensity: float = 1.0
