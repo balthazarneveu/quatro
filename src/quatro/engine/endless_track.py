@@ -77,6 +77,7 @@ class MovingElement:
             current_element.z = self.elements[0].z + self.z_source / len(self.elements)
             current_element.x = random.uniform(self.xrange[0], self.xrange[1])
             current_element.visible = True
+            current_element.enabled = True
             self.elements.appendleft(current_element)
 
     def draw(self, screen: pygame.Surface):

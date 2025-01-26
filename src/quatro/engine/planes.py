@@ -28,6 +28,7 @@ class WallElement:
         self.angle = angle
         self.camera = camera
         self.visible = True
+        self.enabled = True
 
     def out_of_screen(self):
         min_distance_z = self.get_min_distance()
