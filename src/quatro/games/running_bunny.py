@@ -7,7 +7,7 @@ from quatro.engine.planes import Floor, Wall, FacingWall
 from quatro.engine.endless_track import MovingTrack, MovingElement
 from quatro.engine.pinhole_camera import Camera
 from math import sin, radians
-
+import random
 
 class Shadow:
     def __init__(self, x, y, z=0):
@@ -69,6 +69,55 @@ class Carrot(FacingWall):
         return collision
 
 
+class Hole(Floor):
+    def __init__(self, *args, score_multiplier=-1, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.score_multiplier = score_multiplier
+
+    def get_coordinates(self):
+        pts_3d = super().get_coordinates()
+        geometry = [
+            {
+                "type": "ellipse",
+                "content": {
+                    "color": (30, 30, 30),  # dark green color
+                    "center": (pts_3d[0] + pts_3d[1] + pts_3d[2] + pts_3d[3]) / 4.0,
+                    "size_x": self.xy_size[0],
+                    "size_y": self.xy_size[1],
+                    "angle": 0.0,
+                    "width": 0,
+                },
+            }
+        ]
+        return geometry
+
+    def collide(self, player_bounding_box: pygame.Rect, screen: pygame.Surface = None):
+        # Offset the player bounding box to fit the feets
+        offset_player_bounding_box = player_bounding_box.copy()
+        offset_player_bounding_box.y += player_bounding_box.height * 1.0
+        offset_player_bounding_box.height *= 0.1
+        # Correct the hole bounding box to make it easier to collide
+        corrected_bounding_box = self.bounding_box.copy()
+        corrected_bounding_box.inflate_ip(
+            -corrected_bounding_box.width * 0.5, -corrected_bounding_box.height * 0.5
+        )
+        if screen:
+            if self.visible:
+                pygame.draw.rect(
+                    screen,
+                    (255, 0, 0) if self.enabled else (0, 0, 255),
+                    corrected_bounding_box,
+                    2,
+                )
+            pygame.draw.rect(screen, (255, 255, 0), offset_player_bounding_box, 2)
+        collision = corrected_bounding_box.colliderect(offset_player_bounding_box)
+        if not self.enabled:
+            collision = False
+        if collision:
+            self.enabled = False
+        return collision
+
+
 def draw_carrot_gauge(screen, score, max_score, position, size, draw_text=True):
     """Draw a carrot-shaped gauge bar.
 
@@ -111,7 +160,7 @@ def launch_running_bunny(resolution=None):
     clock = pygame.time.Clock()
     running = True
     dt = 0
-    speed = 1.0 * f_factor
+    speed = 2.0 * f_factor
     TRACK_WIDTH = 3.0 * f_factor
     CROP_TOP = 2.0 * f_factor
     Z_SOURCE = 30.0 * f_factor
@@ -175,6 +224,20 @@ def launch_running_bunny(resolution=None):
             camera=camera,
         )
     )
+    moving_elements.append(
+        MovingElement(
+            speed=speed,
+            num_elements=10,
+            y=0.0 * CROP_TOP,
+            z_source=Z_SOURCE,
+            x_range=[-TRACK_WIDTH * 0.6, TRACK_WIDTH * 0.6],
+            xy_size=[0.2 * TRACK_WIDTH, 0.2 * TRACK_WIDTH],
+            z_size=0.0,
+            element_type=Hole,
+            color=(255, 165, 0),  # orange color
+            camera=camera,
+        )
+    )
 
     player_pos = pygame.Vector2(w / 2, 3 * h / 4)
     player = Bunny(*player_pos, size=50, animation_speed=10)
@@ -192,7 +255,7 @@ def launch_running_bunny(resolution=None):
                 if reward_element.collide(player.bounding_box, screen=None):
                     score += reward_element.score_multiplier * 1
                     if reward_element.score_multiplier < 0:
-                        player.x += TRACK_WIDTH * dt * 100 * 2
+                        player.x += random.choice([-1, 1]) * TRACK_WIDTH * dt * 100 * 2
 
         # Draw black holes
         shadow = Shadow(player.x, player.y + player.size * 1.8)  # looks like  a shadow
