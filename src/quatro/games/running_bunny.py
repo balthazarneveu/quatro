@@ -65,7 +65,7 @@ class Carrot(FacingWall):
         return collision
 
 
-def draw_carrot_gauge(screen, score, max_score, position, size):
+def draw_carrot_gauge(screen, score, max_score, position, size, draw_text=True):
     """Draw a carrot-shaped gauge bar.
 
     Args:
@@ -84,6 +84,11 @@ def draw_carrot_gauge(screen, score, max_score, position, size):
     pygame.draw.rect(screen, (255, 69, 0), (x, y, filled_width, height))
     # Draw the carrot body
     pygame.draw.rect(screen, carrot_color, (x, y, width, height), 1)
+    # Draw the current score text
+    if draw_text:
+        font = pygame.font.SysFont(None, 36)
+        score_text = font.render(f"{score}", True, (255, 255, 255))
+        screen.blit(score_text, (x + width // 2 - 10, y + 2))
 
 
 def launch_running_bunny(resolution=None):
