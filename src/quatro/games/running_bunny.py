@@ -20,6 +20,14 @@ class Hole:
         )
 
 
+class Carrot(FacingWall):
+    def get_coordinates(self):
+        pts_3d = super().get_coordinates()
+        br, bl = pts_3d[2], pts_3d[3]
+        pts_3d = pts_3d[:2] + [(br + bl) / 2.0]
+        return pts_3d
+
+
 def launch_running_bunny(resolution=None):
     screen = init_screen(resolution)
     w, h = screen.get_width(), screen.get_height()
@@ -88,11 +96,11 @@ def launch_running_bunny(resolution=None):
             num_elements=10,
             y=0.0 * CROP_TOP,
             z_source=Z_SOURCE,
-            x_range=[-TRACK_WIDTH, TRACK_WIDTH],
-            xy_size=0.5 * TRACK_WIDTH,
+            x_range=[-TRACK_WIDTH * 0.6, TRACK_WIDTH * 0.6],
+            xy_size=[0.1 * TRACK_WIDTH, 0.3 * CROP_TOP],
             z_size=0.0,
-            element_type=FacingWall,
-            color=(255, 0, 0),
+            element_type=Carrot,
+            color=(255, 165, 0),  # orange color
             camera=camera,
         )
     )

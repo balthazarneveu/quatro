@@ -88,10 +88,11 @@ class Wall(WallElement):
 
 class FacingWall(WallElement):
     def get_coordinates(self):
-        left = self.x - self.xy_size / 2
-        right = self.x + self.xy_size / 2
+        assert len(self.xy_size) == 2
+        left = self.x - self.xy_size[0] / 2
+        right = self.x + self.xy_size[0] / 2
         down = self.y
-        up = self.y + self.xy_size
+        up = self.y + self.xy_size[1]
         tl = pygame.Vector3(left, up, self.back)
         tr = pygame.Vector3(right, up, self.back)
         br = pygame.Vector3(right, down, self.back)
