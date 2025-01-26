@@ -1,6 +1,7 @@
 import pygame
 import math
 from quatro.engine.maths import clip
+from quatro.engine.ellipse import draw_ellipse_angle
 
 
 class WallElement:
@@ -50,14 +51,49 @@ class WallElement:
         self.back = clip(self.z + self.z_size / 2, min_distance, None)
         self.front = clip(self.z - self.z_size / 2, min_distance, None)
 
-        pts_3d = self.get_coordinates()
+        elements_to_draw = self.get_coordinates()
+        if isinstance(elements_to_draw, list) and not isinstance(
+            elements_to_draw[0], dict
+        ):
+            elements_to_draw = [
+                {"type": "poly", "content": elements_to_draw},
+            ]
 
         # Visibility check
-        if all([pt_3d.z >= 0 for pt_3d in pts_3d]):
-            points = [self.camera.project(pt_3d) for pt_3d in pts_3d]
-            if None in points:
-                return
-            pygame.draw.polygon(screen, self.color, points)
+        for element_to_draw in elements_to_draw:
+            geometry_type = element_to_draw.get("type", "poly")
+            pts_3d = element_to_draw.get("content", [])
+            if geometry_type == "poly":
+                if all([pt_3d.z >= 0 for pt_3d in pts_3d]):
+                    points = [self.camera.project(pt_3d) for pt_3d in pts_3d]
+                    if None in points:
+                        continue
+                    pygame.draw.polygon(screen, self.color, points)
+            if geometry_type == "ellipse":
+                content = element_to_draw["content"]
+                center_3d = content["center"]
+                center = self.camera.project(center_3d)
+                offset_x = self.camera.project(
+                    center_3d + pygame.Vector3(content["size_x"], 0.0, 0.0)
+                )
+                width = abs((offset_x - center).x)
+                offset_y = self.camera.project(
+                    center_3d + pygame.Vector3(0.0, content["size_y"], 0.0)
+                )
+                height = abs((offset_y - center).y)
+                offset = pygame.Vector2(width, height)
+                draw_ellipse_angle(
+                    screen,
+                    content.get("color", (0, 0, 0)),
+                    pygame.Rect(
+                        center[0] - offset[0] / 2.0,
+                        center[1] - offset[1] / 2.0,
+                        width,
+                        height,
+                    ),
+                    angle=content.get("angle", 0.0),
+                    width=content.get("width", 0.0),
+                )
 
 
 class Floor(WallElement):
