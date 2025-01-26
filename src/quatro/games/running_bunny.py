@@ -23,7 +23,7 @@ class Hole:
 def launch_running_bunny(resolution=None):
     screen = init_screen(resolution)
     w, h = screen.get_width(), screen.get_height()
-    f_factor = 10.
+    f_factor = 10.0
     camera = Camera(
         x=0.0,
         y=4.0 * f_factor,
@@ -44,7 +44,7 @@ def launch_running_bunny(resolution=None):
     moving_tracks = [
         MovingTrack(
             speed=speed,
-            num_planks=50,
+            num_elements=50,
             z_source=Z_SOURCE * 1.5,
             xy_size=TRACK_WIDTH * 2,
             element_type=Floor,
@@ -56,7 +56,7 @@ def launch_running_bunny(resolution=None):
         moving_tracks.append(
             MovingTrack(
                 speed=speed,
-                num_planks=70,
+                num_elements=70,
                 z_source=Z_SOURCE,
                 x_source=sign * TRACK_WIDTH,
                 randomness_amplitude=0,
@@ -72,7 +72,7 @@ def launch_running_bunny(resolution=None):
         moving_tracks.append(
             MovingTrack(
                 speed=speed,
-                num_planks=50,
+                num_elements=50,
                 y=CROP_TOP,
                 z_source=Z_SOURCE,
                 x_source=sign * (TRACK_WIDTH + CROP_TOP_SIZE / 2),
@@ -90,7 +90,7 @@ def launch_running_bunny(resolution=None):
         running = handle_quit(keys)
         draw_background_from_asset(screen, current_background)
         for moving_track in moving_tracks:
-            moving_track.move_planks(dt=dt)
+            moving_track.move(dt=dt)
             moving_track.draw(screen)
 
         # Draw black holes
