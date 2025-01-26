@@ -65,6 +65,7 @@ class WallElement:
             ]
 
         # Visibility check
+        all_bounding_boxes = []
         for element_to_draw in elements_to_draw:
             geometry_type = element_to_draw.get("type", "poly")
             pts_3d = element_to_draw.get("content", [])
@@ -74,11 +75,13 @@ class WallElement:
                     if None in points:
                         continue
                     pygame.draw.polygon(screen, self.color, points)
-                    self.bounding_box = pygame.Rect(
-                        min([pt.x for pt in points]),
-                        min([pt.y for pt in points]),
-                        max([pt.x for pt in points]) - min([pt.x for pt in points]),
-                        max([pt.y for pt in points]) - min([pt.y for pt in points]),
+                    all_bounding_boxes.append(
+                        pygame.Rect(
+                            min([pt.x for pt in points]),
+                            min([pt.y for pt in points]),
+                            max([pt.x for pt in points]) - min([pt.x for pt in points]),
+                            max([pt.y for pt in points]) - min([pt.y for pt in points]),
+                        )
                     )
             if geometry_type == "ellipse":
                 content = element_to_draw["content"]
@@ -93,18 +96,22 @@ class WallElement:
                 )
                 height = abs((offset_y - center).y)
                 offset = pygame.Vector2(width, height)
+                bounding_box = pygame.Rect(
+                    center[0] - offset[0] / 2.0,
+                    center[1] - offset[1] / 2.0,
+                    width,
+                    height,
+                )
+                all_bounding_boxes.append(bounding_box)
                 draw_ellipse_angle(
                     screen,
                     content.get("color", (0, 0, 0)),
-                    pygame.Rect(
-                        center[0] - offset[0] / 2.0,
-                        center[1] - offset[1] / 2.0,
-                        width,
-                        height,
-                    ),
+                    bounding_box,
                     angle=content.get("angle", 0.0),
                     width=content.get("width", 0.0),
                 )
+
+        self.bounding_box = all_bounding_boxes[0].unionall(all_bounding_boxes[1:])
 
 
 class Floor(WallElement):
