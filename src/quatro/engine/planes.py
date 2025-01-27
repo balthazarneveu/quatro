@@ -90,10 +90,15 @@ class WallElement:
                 offset_x = self.camera.project(
                     center_3d + pygame.Vector3(content["size_x"], 0.0, 0.0)
                 )
+                if offset_x is None:
+                    continue
                 width = abs((offset_x - center).x)
                 offset_y = self.camera.project(
-                    center_3d + pygame.Vector3(0.0, content["size_y"], 0.0)
+                    center_3d
+                    + pygame.Vector3(0.0, content["size_y"], content.get("size_z", 0.0))
                 )
+                if offset_y is None:
+                    continue
                 height = abs((offset_y - center).y)
                 offset = pygame.Vector2(width, height)
                 bounding_box = pygame.Rect(
@@ -110,8 +115,10 @@ class WallElement:
                     angle=content.get("angle", 0.0),
                     width=content.get("width", 0.0),
                 )
-
-        self.bounding_box = all_bounding_boxes[0].unionall(all_bounding_boxes[1:])
+        if len(all_bounding_boxes) > 0:
+            self.bounding_box = all_bounding_boxes[0].unionall(all_bounding_boxes[1:])
+        else:
+            self.bounding_box = pygame.Rect(0, 0, 0, 0)
 
 
 class Floor(WallElement):

@@ -9,6 +9,7 @@ from quatro.engine.pinhole_camera import Camera
 from math import sin, radians
 import random
 
+
 class Shadow:
     def __init__(self, x, y, z=0):
         self.x = x
@@ -83,7 +84,8 @@ class Hole(Floor):
                     "color": (30, 30, 30),  # dark green color
                     "center": (pts_3d[0] + pts_3d[1] + pts_3d[2] + pts_3d[3]) / 4.0,
                     "size_x": self.xy_size[0],
-                    "size_y": self.xy_size[1],
+                    "size_y": 0,
+                    "size_z": self.xy_size[1],
                     "angle": 0.0,
                     "width": 0,
                 },
