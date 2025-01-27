@@ -1,5 +1,4 @@
 import pygame
-from quatro.engine.maths import clip
 import math
 import numpy as np
 
@@ -85,8 +84,6 @@ class Camera:
             )
             + self.screen_center
         )
-        out.x = clip(out.x, 0, self.w)
-        out.y = clip(out.y, 0, self.h)
         return out
 
     def get_min_distance(self, point: pygame.Vector3) -> pygame.Vector2:
