@@ -58,6 +58,8 @@ class Carrot(FacingWall):
         return geometry
 
     def collide(self, player_bounding_box: pygame.Rect, screen: pygame.Surface = None):
+        if self.bounding_box is None or player_bounding_box is None:
+            return False
         if screen:
             if self.visible:
                 pygame.draw.rect(screen, (255, 0, 0), self.bounding_box, 2)
@@ -94,6 +96,8 @@ class Hole(Floor):
         return geometry
 
     def collide(self, player_bounding_box: pygame.Rect, screen: pygame.Surface = None):
+        if player_bounding_box is None:
+            return False
         # Offset the player bounding box to fit the feets
         offset_player_bounding_box = player_bounding_box.copy()
         offset_player_bounding_box.y += player_bounding_box.height * 1.0
@@ -242,8 +246,9 @@ def launch_running_bunny(resolution=None):
         )
     )
 
-    player_pos = pygame.Vector2(w / 2, 3 * h / 4)
-    player = Bunny(*player_pos, size=50, animation_speed=10)
+    # player_pos = pygame.Vector2(w / 2, 3 * h / 4)
+    player_pos = 0.0, 0.0, 50.0
+    player = Bunny(*player_pos, size=5.0, animation_speed=10, camera=camera)
     current_background = "night_wheat_field"
     while running:
         keys = pygame.key.get_pressed()
@@ -257,8 +262,8 @@ def launch_running_bunny(resolution=None):
             for reward_element in reward_elements.elements:
                 if reward_element.collide(player.bounding_box, screen=None):
                     score += reward_element.score_multiplier * 1
-                    if reward_element.score_multiplier < 0:
-                        player.x += random.choice([-1, 1]) * TRACK_WIDTH * dt * 100 * 2
+                    # if reward_element.score_multiplier < 0:
+                    # player.x += random.choice([-1, 1]) * TRACK_WIDTH * dt * 100 * 2
 
         # Draw black holes
         shadow = Shadow(player.x, player.y + player.size * 1.8)  # looks like  a shadow
@@ -270,10 +275,10 @@ def launch_running_bunny(resolution=None):
 
         # Game control update logic
         if keys[pygame.K_LEFT]:
-            player.x -= speed / f_factor * 100 * dt
+            player.x -= speed / f_factor * 5.0 * dt
 
         if keys[pygame.K_RIGHT]:
-            player.x += speed / f_factor * 100 * dt
+            player.x += speed / f_factor * 5.0 * dt
         MAX_YAW = 30
         if keys[pygame.K_KP8]:
             camera.camera_position.y += 1.0 * f_factor * dt
