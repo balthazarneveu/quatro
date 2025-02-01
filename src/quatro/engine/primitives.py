@@ -71,7 +71,7 @@ def draw_elements(
                 content.get("color", color),
                 bounding_box,
                 angle=content.get("angle", 0.0),
-                width=content.get("width", 0.0),
+                width=content.get("width", 0),
             )
     if len(all_bounding_boxes) > 0:
         return all_bounding_boxes[0].unionall(all_bounding_boxes[1:])
