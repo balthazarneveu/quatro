@@ -45,7 +45,6 @@ def launch_flappy_butterfly(resolution=(1280, 720)):
 
     while running:
         keys = pygame.key.get_pressed()
-        keys = pygame.key.get_pressed()
         running = handle_quit(keys)
         # fill the screen with an image
 
