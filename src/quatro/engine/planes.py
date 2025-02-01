@@ -1,22 +1,39 @@
 import pygame
 import math
 from quatro.engine.maths import clip
-from quatro.engine.ellipse import draw_ellipse_angle
+from quatro.engine.pinhole_camera import Camera
+
+from quatro.engine.primitives import draw_elements
 
 
 class WallElement:
+    """
+    Base class representing a 3D wall or floor element for drawing in a 2D surface.
+    """
+
     def __init__(
         self,
-        x: float = 0,  # => in the middle horizontally
-        y: float = 0,  # => on the floor
-        z: float = 10.0,  # => 10 units away from the screen
-        z_size: float = 5.0,  # Depth of the plank
+        x: float = 0,
+        y: float = 0,
+        z: float = 10.0,
+        z_size: float = 5.0,
         xy_size: float = 5.0,
         color=(139, 69, 19),
         intensity: float = 1.0,
         angle=0.0,
-        camera=None,
-    ):
+        camera: Camera = None,
+    ) -> None:
+        """
+        :param x: The x position of the element on the ground.
+        :param y: The y position of the element on the ground.
+        :param z: Distance along the Z-axis from the camera/screen.
+        :param z_size: Thickness of the element along the Z-axis.
+        :param xy_size: Size of the element in the X and Y directions.
+        :param color: The R, G, B color values for the element.
+        :param intensity: A multiplier that affects the base color.
+        :param angle: Rotation angle of the element in degrees.
+        :param camera: The camera used for 3D to 2D projection.
+        """
         self.x = x
         self.y = y
         self.z = z
@@ -43,86 +60,28 @@ class WallElement:
         )
         return min(min_distance_x, min_distance_y)
 
-    def get_coordinates(self):
+    def get_coordinates(self) -> list[pygame.Vector3]:
+        """
+        Compute and return the 3D corner or shape points for this element.
+        """
         raise NotImplementedError
 
-    def draw(
-        self,
-        screen: pygame.Surface,
-    ):
-        # 3D plank coordinates
+    def draw(self, screen: pygame.Surface) -> None:
+        """
+        Perform final checks, then project and draw element into the given screen.
+        """
         min_distance = self.get_min_distance()
         self.back = clip(self.z + self.z_size / 2, min_distance, None)
         self.front = clip(self.z - self.z_size / 2, min_distance, None)
         if not self.visible:
             return
-        elements_to_draw = self.get_coordinates()
-        if isinstance(elements_to_draw, list) and not isinstance(
-            elements_to_draw[0], dict
-        ):
-            elements_to_draw = [
-                {"type": "poly", "content": elements_to_draw},
-            ]
-
-        # Visibility check
-        all_bounding_boxes = []
-        for element_to_draw in elements_to_draw:
-            geometry_type = element_to_draw.get("type", "poly")
-            pts_3d = element_to_draw.get("content", [])
-            if geometry_type == "poly":
-                if all([pt_3d.z >= 0 for pt_3d in pts_3d]):
-                    points = [self.camera.project(pt_3d) for pt_3d in pts_3d]
-                    if None in points:
-                        continue
-                    pygame.draw.polygon(screen, self.color, points)
-                    all_bounding_boxes.append(
-                        pygame.Rect(
-                            min([pt.x for pt in points]),
-                            min([pt.y for pt in points]),
-                            max([pt.x for pt in points]) - min([pt.x for pt in points]),
-                            max([pt.y for pt in points]) - min([pt.y for pt in points]),
-                        )
-                    )
-            if geometry_type == "ellipse":
-                content = element_to_draw["content"]
-                center_3d = content["center"]
-                center = self.camera.project(center_3d)
-                offset_x = self.camera.project(
-                    center_3d + pygame.Vector3(content["size_x"], 0.0, 0.0)
-                )
-                if offset_x is None:
-                    continue
-                width = abs((offset_x - center).x)
-                offset_y = self.camera.project(
-                    center_3d
-                    + pygame.Vector3(0.0, content["size_y"], content.get("size_z", 0.0))
-                )
-                if offset_y is None:
-                    continue
-                height = abs((offset_y - center).y)
-                offset = pygame.Vector2(width, height)
-                bounding_box = pygame.Rect(
-                    center[0] - offset[0] / 2.0,
-                    center[1] - offset[1] / 2.0,
-                    width,
-                    height,
-                )
-                all_bounding_boxes.append(bounding_box)
-                draw_ellipse_angle(
-                    screen,
-                    content.get("color", (0, 0, 0)),
-                    bounding_box,
-                    angle=content.get("angle", 0.0),
-                    width=content.get("width", 0.0),
-                )
-        if len(all_bounding_boxes) > 0:
-            self.bounding_box = all_bounding_boxes[0].unionall(all_bounding_boxes[1:])
-        else:
-            self.bounding_box = pygame.Rect(0, 0, 0, 0)
+        self.bounding_box = draw_elements(
+            screen, self.camera, self.color, self.get_coordinates()
+        )
 
 
 class Floor(WallElement):
-    def get_coordinates(self):
+    def get_coordinates(self) -> list[pygame.Vector3]:
         left = self.x - self.xy_size[0] / 2
         right = self.x + self.xy_size[0] / 2
 
@@ -135,7 +94,7 @@ class Floor(WallElement):
 
 
 class Wall(WallElement):
-    def get_coordinates(self):
+    def get_coordinates(self) -> list[pygame.Vector3]:
         down = self.y
         up = self.y + math.cos(math.radians(self.angle)) * self.xy_size[1]
         x_offset = math.sin(math.radians(self.angle)) * self.xy_size[0]
@@ -148,7 +107,7 @@ class Wall(WallElement):
 
 
 class FacingWall(WallElement):
-    def get_coordinates(self):
+    def get_coordinates(self) -> list[pygame.Vector3]:
         assert len(self.xy_size) == 2
         left = self.x - self.xy_size[0] / 2
         right = self.x + self.xy_size[0] / 2
