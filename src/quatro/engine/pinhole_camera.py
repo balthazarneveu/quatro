@@ -63,6 +63,7 @@ class Camera:
         w: float = 1280,
         h: float = 720,
         pitch: float = 0.0,
+        yaw: float = 0.0,
     ):
         self.camera_position = pygame.Vector3(x, y, z)
         self.focal_length = focal_length
@@ -70,10 +71,13 @@ class Camera:
         self.w = w
         self.h = h
         self.pitch = pitch
+        self.yaw = yaw
 
     def project(self, point: pygame.Vector3) -> pygame.Vector2:
         relative_point = point - self.camera_position
+        relative_point = rotate_point_around_axis(relative_point, "y", self.yaw)
         relative_point = rotate_point_around_axis(relative_point, "x", self.pitch)
+
         if relative_point.z <= 0:
             return None
         out = (

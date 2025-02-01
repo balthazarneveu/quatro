@@ -158,6 +158,7 @@ def launch_running_bunny(resolution=None):
         w=w,
         h=h,
         pitch=-18.0,
+        yaw=0.0,
     )
     clock = pygame.time.Clock()
     running = True
@@ -273,16 +274,19 @@ def launch_running_bunny(resolution=None):
 
         if keys[pygame.K_RIGHT]:
             player.x += speed / f_factor * 100 * dt
-
-        if keys[pygame.K_UP]:
+        MAX_YAW = 30
+        if keys[pygame.K_KP8]:
             camera.camera_position.y += 1.0 * f_factor * dt
-        if keys[pygame.K_DOWN]:
+        if keys[pygame.K_KP2]:
             camera.camera_position.y -= 1.0 * f_factor * dt
         if keys[pygame.K_PAGEDOWN]:
             camera.pitch += 20.0 * dt
         if keys[pygame.K_PAGEUP]:
             camera.pitch -= 20.0 * dt
-
+        if keys[pygame.K_KP4] and camera.yaw < MAX_YAW:
+            camera.yaw += 20.0 * dt
+        if keys[pygame.K_KP6] and camera.yaw > -MAX_YAW:
+            camera.yaw -= 20.0 * dt
         pygame.display.flip()
 
         dt = clock.tick(60) / 1000
