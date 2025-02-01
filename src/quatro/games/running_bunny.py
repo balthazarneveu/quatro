@@ -35,7 +35,7 @@ class Carrot(FacingWall):
         geometry = [
             {
                 "type": "poly",
-                "content": pts_3d_triangle,
+                "content": {"points": pts_3d_triangle, "color": self.color},
             }
         ]
         for angle in [-20, 20]:

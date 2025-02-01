@@ -76,7 +76,10 @@ class WallElement:
         if not self.visible:
             return
         self.bounding_box = draw_elements(
-            screen, self.camera, self.color, self.get_coordinates()
+            self.get_coordinates(),
+            screen,
+            self.camera,
+            color=self.color,
         )
 
 

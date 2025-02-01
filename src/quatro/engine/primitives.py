@@ -4,10 +4,10 @@ from quatro.engine.pinhole_camera import Camera
 
 
 def draw_elements(
+    elements_to_draw: list[dict] | list[pygame.Vector3] | dict,
     screen: pygame.Surface,
     camera: Camera,
-    color: tuple[int, int, int],
-    elements_to_draw: list[dict] | list[pygame.Vector3] | dict,
+    color: tuple[int, int, int] = None,
 ) -> pygame.Rect:
     """
     Draw the given 3D elements (polygons or ellipses) onto the screen.
@@ -20,11 +20,15 @@ def draw_elements(
     """
     all_bounding_boxes = []
     if isinstance(elements_to_draw, list) and not isinstance(elements_to_draw[0], dict):
-        elements_to_draw = [{"type": "poly", "content": elements_to_draw}]
+        elements_to_draw = [
+            {"type": "poly", "content": {"points": elements_to_draw, "color": color}}
+        ]
     for element_to_draw in elements_to_draw:
         geometry_type = element_to_draw.get("type", "poly")
-        pts_3d = element_to_draw.get("content", [])
+        content = element_to_draw["content"]
         if geometry_type == "poly":
+            pts_3d = content.get("points", [])
+            color = content.get("color", color)
             if all([pt_3d.z >= 0 for pt_3d in pts_3d]):
                 points = [camera.project(pt_3d) for pt_3d in pts_3d]
                 if None in points:
@@ -39,7 +43,6 @@ def draw_elements(
                     )
                 )
         if geometry_type == "ellipse":
-            content = element_to_draw["content"]
             center_3d = content["center"]
             center = camera.project(center_3d)
             offset_x = camera.project(
@@ -65,7 +68,7 @@ def draw_elements(
             all_bounding_boxes.append(bounding_box)
             draw_ellipse_angle(
                 screen,
-                content.get("color", (0, 0, 0)),
+                content.get("color", color),
                 bounding_box,
                 angle=content.get("angle", 0.0),
                 width=content.get("width", 0.0),
