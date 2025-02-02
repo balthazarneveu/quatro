@@ -1,6 +1,6 @@
 import pygame
 from quatro.graphics.background import draw_background_from_asset
-from quatro.sound.sound import play_sound, ALL_SOUNDS
+from quatro.sound.sound import play_sound
 
 from quatro.graphics.animation.bunny import Bunny, Shadow
 from quatro.system.quit import handle_quit
@@ -49,11 +49,18 @@ class Carrot(FacingWall):
     def collide(self, player_bounding_box: pygame.Rect, screen: pygame.Surface = None):
         if self.bounding_box is None or player_bounding_box is None:
             return False
+
+        # Offset the player bounding box to fit the feets
+        offset_player_bounding_box = player_bounding_box.copy()
+        offset_player_bounding_box.y += player_bounding_box.height * 0.5
+        offset_player_bounding_box.height *= 0.3
+        offset_player_bounding_box.x += player_bounding_box.width * 0.25
+        offset_player_bounding_box.width *= 0.5
         if screen:
             if self.visible:
                 pygame.draw.rect(screen, (255, 0, 0), self.bounding_box, 2)
-            pygame.draw.rect(screen, (0, 255, 0), player_bounding_box, 2)
-        collision = self.bounding_box.colliderect(player_bounding_box)
+            pygame.draw.rect(screen, (0, 255, 0), offset_player_bounding_box, 2)
+        collision = self.bounding_box.colliderect(offset_player_bounding_box)
         if not self.visible:
             collision = False
         if collision:
@@ -252,7 +259,9 @@ def launch_running_bunny(resolution=None, debug: bool = False):
         if player.enabled:
             for reward_elements in moving_elements:
                 for reward_element in reward_elements.elements:
-                    if reward_element.collide(player.bounding_box, screen=None):
+                    if reward_element.collide(
+                        player.bounding_box, screen=screen if debug else None
+                    ):
                         score += reward_element.score_multiplier * 1
                         if reward_element.score_multiplier < 0:
                             player.y = RESTART_HEIGHT
