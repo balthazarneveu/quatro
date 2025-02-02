@@ -16,6 +16,7 @@ def populate_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser()
     parser.add_argument("-g", "--game", type=str, default="bunny", choices=GAMES_NAMES)
     parser.add_argument("-r", "--resolution", type=int, nargs=2, default=None)
+    parser.add_argument("-d", "--debug", action="store_true")
     return parser
 
 
@@ -26,4 +27,4 @@ if __name__ == "__main__":
     assert game_to_launch is not None, f"Game {game_to_launch} not found in GAMES_LIST"
     game_func = GAMES_LIST.get(game_to_launch, None)
     assert game_func is not None, f"Game {game_to_launch} not found in GAMES_LIST"
-    game_func(resolution=args.resolution)
+    game_func(resolution=args.resolution, debug=args.debug)

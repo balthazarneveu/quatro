@@ -95,7 +95,7 @@ def flappy_pipe():
     return out
 
 
-def launch_flappy_pipe(resolution=(1280, 720)):
+def launch_flappy_pipe(resolution=(1280, 720), debug: bool = False):
     interactive(background_name=("sunset_field", list(BACKGROUNDS.keys())))(
         get_background
     )
