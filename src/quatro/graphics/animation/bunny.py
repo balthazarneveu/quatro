@@ -45,6 +45,7 @@ class Bunny(ControlledPlayer):
         self.bounding_box = None
         self.elements = []
         self.camera = camera
+        self.enabled = True
 
     def animate(self, dt: float = 0) -> None:
         current_phase = self.previous_phase + dt * self.animation_speed
@@ -82,8 +83,6 @@ class Bunny(ControlledPlayer):
         )
 
         self.bounding_box = draw_elements(self.elements, screen, self.camera)
-        # self.get_bounding_box()
-        pygame.draw.rect(screen, (255, 0, 0), self.bounding_box, 1)
 
     def _draw_head(self, y_offset=0, intensity: float = 1.0) -> None:
         intensity *= self.global_intensity
