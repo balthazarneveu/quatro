@@ -1,25 +1,12 @@
 import pygame
 from quatro.graphics.background import draw_background_from_asset
-from quatro.graphics.animation.bunny import Bunny
+from quatro.graphics.animation.bunny import Bunny, Shadow
 from quatro.system.quit import handle_quit
 from quatro.system.window import init_screen
 from quatro.engine.planes import Floor, Wall, FacingWall
 from quatro.engine.endless_track import MovingTrack, MovingElement
 from quatro.engine.pinhole_camera import Camera
 from math import sin, radians
-import random
-
-
-class Shadow:
-    def __init__(self, x, y, z=0):
-        self.x = x
-        self.y = y
-        self.width = 80
-
-    def draw(self, screen):
-        pygame.draw.ellipse(
-            screen, (0, 0, 0), (self.x - self.width / 2, self.y, self.width, 40)
-        )
 
 
 class Carrot(FacingWall):
@@ -245,10 +232,12 @@ def launch_running_bunny(resolution=None, debug: bool = False):
             camera=camera,
         )
     )
-
-    # player_pos = pygame.Vector2(w / 2, 3 * h / 4)
-    player_pos = 0.0, 0.0, 50.0
+    RESTART_HEIGHT = 40.0
+    player_pos = 0.0, RESTART_HEIGHT, 50.0
     player = Bunny(*player_pos, size=5.0, animation_speed=10, camera=camera)
+    shadow = Shadow(
+        player.x, player.body_bottom, player.z, shadow_size=5.0, camera=camera
+    )  # looks like  a shadow
     current_background = "night_wheat_field"
     while running:
         keys = pygame.key.get_pressed()
@@ -263,11 +252,11 @@ def launch_running_bunny(resolution=None, debug: bool = False):
                     if reward_element.collide(player.bounding_box, screen=None):
                         score += reward_element.score_multiplier * 1
                         if reward_element.score_multiplier < 0:
-                            player.y = 30.0
+                            player.y = RESTART_HEIGHT
 
         # Draw black holes
-        shadow = Shadow(player.x, player.y + player.size * 1.8)  # looks like  a shadow
         shadow.x = player.x
+        shadow.y = 0.0
         shadow.draw(screen)
         player.draw(screen, dt=dt)
         if debug:
@@ -277,12 +266,13 @@ def launch_running_bunny(resolution=None, debug: bool = False):
 
         # Game control update logic
         # Gravity in action!
-        if player.y > 0:
+        ground_level_player = 2.0 * player.size
+        if player.y > ground_level_player:
             player.enabled = False
             player.global_intensity = 0.0
             player.y -= 50.0 * dt
-            if player.y < 0:
-                player.y = 0
+            if player.y < ground_level_player:
+                player.y = ground_level_player
                 player.global_intensity = 1.0
                 player.enabled = True
         if keys[pygame.K_LEFT]:

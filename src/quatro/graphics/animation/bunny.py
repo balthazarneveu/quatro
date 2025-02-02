@@ -46,6 +46,7 @@ class Bunny(ControlledPlayer):
         self.elements = []
         self.camera = camera
         self.enabled = True
+        self._prepare_draw_body()
 
     def animate(self, dt: float = 0) -> None:
         current_phase = self.previous_phase + dt * self.animation_speed
@@ -219,6 +220,32 @@ class Bunny(ControlledPlayer):
             for sign in [-1, 1]
         ]
         self.elements.extend(arm_elements)
+
+
+class Shadow:
+    def __init__(self, x, y, z, shadow_size=1.0, camera: Camera = None, intensity=0.1):
+        self.x = x
+        self.y = y
+        self.z = z  # z position won't affect rendering since shadow is at z=0
+        self.width = shadow_size
+        self.camera = camera  # Will be set when drawing
+        self.intensity = intensity
+
+    def draw(self, screen):
+        shadow_element = {
+            "type": "ellipse",
+            "content": {
+                "center": pygame.Vector3(self.x, self.y, self.z),
+                "size_x": self.width,
+                "size_y": self.width / 2.0,
+                "color": (
+                    self.intensity * 255,
+                    self.intensity * 255,
+                    self.intensity * 255,
+                ),
+            },
+        }
+        draw_elements([shadow_element], screen, self.camera)
 
 
 if __name__ == "__main__":
