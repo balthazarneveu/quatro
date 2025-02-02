@@ -241,6 +241,7 @@ def launch_running_bunny(resolution=None, debug: bool = False):
         player.x, player.body_bottom, player.z, shadow_size=5.0, camera=camera
     )  # looks like  a shadow
     current_background = "night_wheat_field"
+    play_sound("chill_music", loop=1000)
     while running:
         keys = pygame.key.get_pressed()
         running = handle_quit(keys)

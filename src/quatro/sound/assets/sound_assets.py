@@ -20,6 +20,9 @@ SOUNDS = {
     "bounce": {
         PATH: ASSET_FOLDER / "sounds" / "bounce.wav",
     },
+    "chill_music": {
+        PATH: ASSET_FOLDER / "sounds" / "chill_music.mp3",
+    },
 }
 
 if __name__ == "__main__":
