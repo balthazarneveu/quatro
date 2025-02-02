@@ -1,5 +1,7 @@
 import pygame
 from quatro.graphics.background import draw_background_from_asset
+from quatro.sound.sound import play_sound, ALL_SOUNDS
+
 from quatro.graphics.animation.bunny import Bunny, Shadow
 from quatro.system.quit import handle_quit
 from quatro.system.window import init_screen
@@ -253,6 +255,9 @@ def launch_running_bunny(resolution=None, debug: bool = False):
                         score += reward_element.score_multiplier * 1
                         if reward_element.score_multiplier < 0:
                             player.y = RESTART_HEIGHT
+                            play_sound("booing")
+                        if reward_element.score_multiplier > 0:
+                            play_sound("beep")
 
         # Draw black holes
         shadow.x = player.x
