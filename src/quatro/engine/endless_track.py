@@ -20,13 +20,16 @@ class MovingTrack:
         self.z_source = z_source
         self.x_source = x_source
         self.randomness_amplitude = randomness_amplitude
+        self.element_size = z_source / num_elements if z_size is None else z_size
+        # Add small overlap to prevent gaps
+        self.element_size *= 1.005
         self.elements = deque(
             [
                 element_type(
-                    z=z_source - (i / num_elements) * z_source,
+                    z=z_source - i * self.element_size,  # Use fixed element_size
                     intensity=0.5 + random.uniform(0.0, 0.5),
                     x=self.x_source,
-                    z_size=z_source / num_elements if z_size is None else z_size,
+                    z_size=self.element_size,
                     **kwargs,
                 )
                 for i in range(num_elements)
@@ -39,9 +42,8 @@ class MovingTrack:
             element.z -= self.speed * dt
         if self.elements[-1].out_of_screen():
             current_element = self.elements.pop()
-            current_element.z = self.elements[0].z + self.z_source / len(
-                self.elements
-            )  # Need an extra offset to put it behind the back element
+            # Use stored element_size for precise positioning
+            current_element.z = self.elements[0].z + self.element_size
             current_element.x = self.x_source
             self.elements.appendleft(current_element)
 
