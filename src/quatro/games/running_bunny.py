@@ -150,7 +150,7 @@ def draw_carrot_gauge(screen, score, max_score, position, size, draw_text=True):
         screen.blit(score_text, (x + width // 2 - 10, y + 2))
 
 
-def launch_running_bunny(resolution=None):
+def launch_running_bunny(resolution=None, debug: bool = False):
     screen = init_screen(resolution)
     w, h = screen.get_width(), screen.get_height()
     f_factor = 10.0
@@ -257,23 +257,34 @@ def launch_running_bunny(resolution=None):
         for moving_track in moving_tracks + moving_elements:
             moving_track.move(dt=dt)
             moving_track.draw(screen)
-
-        for reward_elements in moving_elements:
-            for reward_element in reward_elements.elements:
-                if reward_element.collide(player.bounding_box, screen=None):
-                    score += reward_element.score_multiplier * 1
-                    # if reward_element.score_multiplier < 0:
-                    # player.x += random.choice([-1, 1]) * TRACK_WIDTH * dt * 100 * 2
+        if player.enabled:
+            for reward_elements in moving_elements:
+                for reward_element in reward_elements.elements:
+                    if reward_element.collide(player.bounding_box, screen=None):
+                        score += reward_element.score_multiplier * 1
+                        if reward_element.score_multiplier < 0:
+                            player.y = 30.0
 
         # Draw black holes
         shadow = Shadow(player.x, player.y + player.size * 1.8)  # looks like  a shadow
         shadow.x = player.x
         shadow.draw(screen)
         player.draw(screen, dt=dt)
+        if debug:
+            pygame.draw.rect(screen, (255, 0, 0), player.bounding_box, 1)
 
         draw_carrot_gauge(screen, score, max_score, position=(10, 10), size=(200, 30))
 
         # Game control update logic
+        # Gravity in action!
+        if player.y > 0:
+            player.enabled = False
+            player.global_intensity = 0.0
+            player.y -= 50.0 * dt
+            if player.y < 0:
+                player.y = 0
+                player.global_intensity = 1.0
+                player.enabled = True
         if keys[pygame.K_LEFT]:
             player.x -= speed / f_factor * 5.0 * dt
 
