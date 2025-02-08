@@ -18,7 +18,9 @@ def update_physics_model(player: ControlledPlayer, trigger_jump=False, dt=0):
     player.y += player.velocity * dt
 
 
-def launch_flappy_butterfly(resolution=(1280, 720), debug: bool = False):
+def launch_flappy_butterfly(
+    resolution=(1280, 720), debug: bool = False, audio: bool = True
+):
     # pygame setup
     screen = init_screen(resolution)
     clock = pygame.time.Clock()

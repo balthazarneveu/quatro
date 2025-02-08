@@ -1,6 +1,6 @@
 import pygame
 from quatro.graphics.background import draw_background_from_asset
-from quatro.sound.sound import play_sound
+from quatro.sound.sound import play_sound, toggle_audio
 
 from quatro.graphics.animation.bunny import Bunny, Shadow
 from quatro.system.quit import handle_quit
@@ -146,8 +146,9 @@ def draw_carrot_gauge(screen, score, max_score, position, size, draw_text=True):
         screen.blit(score_text, (x + width // 2 - 10, y + 2))
 
 
-def launch_running_bunny(resolution=None, debug: bool = False):
+def launch_running_bunny(resolution=None, debug: bool = False, audio: bool = True):
     screen = init_screen(resolution)
+    toggle_audio(audio)
     w, h = screen.get_width(), screen.get_height()
     f_factor = 10.0
     camera = Camera(
