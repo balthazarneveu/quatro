@@ -165,7 +165,7 @@ def launch_running_bunny(resolution=None, debug: bool = False, audio: bool = Tru
     running = True
     dt = 0
     speed = 2.0 * f_factor
-    TRACK_WIDTH = 3.0 * f_factor
+    TRACK_WIDTH = 2.6 * f_factor
     CROP_TOP = 2.0 * f_factor
     Z_SOURCE = 30.0 * f_factor
     WHEAT_COLOR = (245, 222, 179)
@@ -283,6 +283,11 @@ def launch_running_bunny(resolution=None, debug: bool = False, audio: bool = Tru
         # Game control update logic
         # Gravity in action!
         ground_level_player = 2.0 * player.size
+        side_limit = TRACK_WIDTH - 1.5 * player.size
+        if player.x < -side_limit:
+            player.x = -side_limit
+        if player.x > side_limit:
+            player.x = side_limit
         if player.y > ground_level_player:
             player.enabled = False
             player.global_intensity = 0.0
