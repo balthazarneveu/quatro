@@ -5,7 +5,41 @@ from collections import deque
 MOVING_TRACK_SPEED = 1.0
 
 
-class MovingTrack:
+class MovingStuff:
+    def __init__(self, speed: float = MOVING_TRACK_SPEED):
+        self.standard_speed = speed
+        self.speed = speed
+
+    def pause(self) -> None:
+        self.speed = 0.0
+
+    def resume(self) -> None:
+        self.speed = self.standard_speed
+
+    def hide(self) -> None:
+        for element in self.elements:
+            element.visible = False
+            element.enabled = False
+
+    def show(self) -> None:
+        for element in self.elements:
+            element.visible = True
+            element.enabled = True
+
+    def toggle_pause(self, pause: bool = False) -> None:
+        if pause:
+            self.pause()
+        else:
+            self.resume()
+
+    def toggle_visibility(self, visible: bool = False) -> None:
+        if visible:
+            self.show()
+        else:
+            self.hide()
+
+
+class MovingTrack(MovingStuff):
     def __init__(
         self,
         num_elements=10,
@@ -17,6 +51,7 @@ class MovingTrack:
         speed=MOVING_TRACK_SPEED,
         **kwargs,
     ):
+        super().__init__(speed=speed)
         self.z_source = z_source
         self.x_source = x_source
         self.randomness_amplitude = randomness_amplitude
@@ -35,7 +70,6 @@ class MovingTrack:
                 for i in range(num_elements)
             ]  # first element is the farthest from the screen (= the back)
         )
-        self.speed = speed
 
     def move(self, dt: float = 0.1):
         for element in self.elements:
@@ -52,7 +86,7 @@ class MovingTrack:
             element.draw(screen)
 
 
-class MovingElement:
+class MovingElement(MovingStuff):
     def __init__(
         self,
         z_source=10.0,
@@ -62,7 +96,7 @@ class MovingElement:
         element_type=None,
         **kwargs,
     ):
-        self.speed = speed
+        super().__init__(speed=speed)
         self.z_source = z_source
         self.xrange = x_range
         self.elements = deque()
