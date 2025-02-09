@@ -146,7 +146,9 @@ def draw_carrot_gauge(screen, score, max_score, position, size, draw_text=True):
         screen.blit(score_text, (x + width // 2 - 10, y + 2))
 
 
-def launch_running_bunny(resolution=None, debug: bool = False, audio: bool = True) -> dict:
+def launch_running_bunny(
+    resolution=None, debug: bool = False, audio: bool = True
+) -> dict:
     context = {}
     screen = init_screen(resolution)
     toggle_audio(audio)
@@ -164,6 +166,7 @@ def launch_running_bunny(resolution=None, debug: bool = False, audio: bool = Tru
     )
     clock = pygame.time.Clock()
     running = True
+    pause = False
     dt = 0
     speed = 2.0 * f_factor
     TRACK_WIDTH = 2.6 * f_factor
@@ -317,6 +320,14 @@ def launch_running_bunny(resolution=None, debug: bool = False, audio: bool = Tru
             camera.yaw += 20.0 * dt
         if keys[pygame.K_KP6] and camera.yaw > -MAX_YAW:
             camera.yaw -= 20.0 * dt
+        if keys[pygame.K_p]:
+            # Pause the game
+            pause = not pause
+            for element in moving_tracks + moving_elements:
+                element.toggle_pause(pause)
+            for element in moving_elements:
+                element.toggle_visibility(not pause)
+
         pygame.display.flip()
 
         dt = clock.tick(60) / 1000
