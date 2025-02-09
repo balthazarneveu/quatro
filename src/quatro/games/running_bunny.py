@@ -11,15 +11,16 @@ from quatro.engine.endless_track import MovingTrack, MovingElement
 from quatro.engine.pinhole_camera import Camera
 from math import sin, radians
 
+MAX_SCORE_WIN = "max_score_win"
+DEFAULT_GAME_CONFIG = {MAX_SCORE_WIN: 10}
 
-def draw_pause_text(screen):
-    """Draw 'Pause' text on the screen."""
+
+def draw_text(screen: pygame.Surface, text: str):
+    """Draw text on the screen."""
     font = pygame.font.SysFont(None, 72)
-    pause_text = font.render("Pause", True, (255, 255, 255))
-    text_rect = pause_text.get_rect(
-        center=(screen.get_width() // 2, screen.get_height() // 2)
-    )
-    screen.blit(pause_text, text_rect)
+    txt = font.render(text, True, (255, 255, 255))
+    text_rect = txt.get_rect(center=(screen.get_width() // 2, screen.get_height() // 2))
+    screen.blit(txt, text_rect)
 
 
 class Carrot(FacingWall):
@@ -158,12 +159,18 @@ def draw_carrot_gauge(screen, score, max_score, position, size, draw_text=True):
 
 
 def launch_running_bunny(
-    resolution=None, debug: bool = False, audio: bool = True
+    resolution=None,
+    debug: bool = False,
+    audio: bool = True,
+    game_config: dict = DEFAULT_GAME_CONFIG,
 ) -> dict:
+    max_score = game_config.get(MAX_SCORE_WIN, 10)
     context = {}
+    context = {"win": False, "score": 0}
     screen = init_screen(resolution)
     toggle_audio(audio)
     key_debouncer = KeyDebouncer(cooldown_ms=200)
+    winning_animation = False
     w, h = screen.get_width(), screen.get_height()
     f_factor = 10.0
     camera = Camera(
@@ -186,7 +193,6 @@ def launch_running_bunny(
     Z_SOURCE = 30.0 * f_factor
     WHEAT_COLOR = (245, 222, 179)
     score = 0
-    max_score = 10  # Set the maximum score for the gauge
     moving_elements = []
     moving_tracks = []
     moving_tracks += [
@@ -340,8 +346,22 @@ def launch_running_bunny(
                 element.toggle_visibility(not pause)
 
         if pause:
-            draw_pause_text(screen)
+            draw_text(screen, "PAUSE")
         player.toggle_pause(pause)
+
+        if score >= max_score:
+            winning_animation = True
+            moving_elements = []
+            for element in moving_tracks:
+                element.speed = 0.0
+
+            player.enabled = False
+        if winning_animation and not pause:
+            player.z += 20.0 * dt
+            draw_text(screen, "WIN")
+            if player.z > 100.0:
+                running = False
+                context = {"win": True, "score": score}
         pygame.display.flip()
 
         dt = clock.tick(60) / 1000
