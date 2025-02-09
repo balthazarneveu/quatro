@@ -35,12 +35,11 @@ class Bunny(ControlledPlayer):
             z (float): Z-coordinate of the Bunny's position
             size (int, optional): Size of the Bunny. Defaults to 20.
         """
-        super().__init__(x, y, velocity=velocity)
+        super().__init__(x, y, velocity=velocity, animation_speed=animation_speed)
         self.z = z
         self.size = size
         self.previous_time = pygame.time.get_ticks() / 1000
         self.previous_phase = 0
-        self.animation_speed = animation_speed
         self.global_intensity = global_intensity
         self.bounding_box = None
         self.elements = []

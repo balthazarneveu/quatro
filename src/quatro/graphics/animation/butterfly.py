@@ -34,7 +34,7 @@ class Butterfly(ControlledPlayer):
             color (Tuple[int, int, int], optional): RGB color tuple. Defaults to (255, 255, 255).
             flap_speed (float, optional): Speed of wing flapping. Defaults to 5.
         """
-        super().__init__(x, y, velocity=velocity)
+        super().__init__(x, y, velocity=velocity, animation_speed=1.0)
         self.size = size
         self.color = color
         self.flap_speed = flap_speed
@@ -52,7 +52,9 @@ class Butterfly(ControlledPlayer):
         pygame.draw.circle(screen, self.color, (self.x, self.y), self.size // 4)
 
         # Calculate wing angle
-        current_phase = self.previous_phase + dt * self.flap_speed
+        current_phase = self.previous_phase + dt * (
+            self.animation_speed * self.flap_speed
+        )
         self.previous_phase = current_phase
         wing_angle = math.sin(current_phase) * 0.5
 

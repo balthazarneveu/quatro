@@ -26,6 +26,7 @@ def launch_flappy_butterfly(
     screen = init_screen(resolution)
     clock = pygame.time.Clock()
     running = True
+    pause = False
     dt = 0
     w, h = screen.get_width(), screen.get_height()
     player_pos = pygame.Vector2(w / 2, h / 2)
@@ -77,9 +78,12 @@ def launch_flappy_butterfly(
             player.x -= 100 * dt
         if keys[pygame.K_RIGHT]:
             player.x += 100 * dt
-
-        update_physics_model(player, keys[pygame.K_SPACE], dt=dt)
-        player.flap_speed = abs(max(-5, -player.velocity / 10))
+        if keys[pygame.K_p]:
+            pause = not pause
+        player.toggle_pause(pause)
+        if not pause:
+            update_physics_model(player, keys[pygame.K_SPACE], dt=dt)
+            player.flap_speed = abs(max(-5, -player.velocity / 10))
         if player.y < 0:
             player.y = screen.get_height() - 30
             current_background = "sunset_field_large"

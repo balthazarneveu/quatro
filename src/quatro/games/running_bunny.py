@@ -11,6 +11,16 @@ from quatro.engine.pinhole_camera import Camera
 from math import sin, radians
 
 
+def draw_pause_text(screen):
+    """Draw 'Pause' text on the screen."""
+    font = pygame.font.SysFont(None, 72)
+    pause_text = font.render("Pause", True, (255, 255, 255))
+    text_rect = pause_text.get_rect(
+        center=(screen.get_width() // 2, screen.get_height() // 2)
+    )
+    screen.blit(pause_text, text_rect)
+
+
 class Carrot(FacingWall):
     def __init__(self, *args, score_multiplier=1, **kwargs):
         super().__init__(*args, **kwargs)
@@ -327,7 +337,11 @@ def launch_running_bunny(
                 element.toggle_pause(pause)
             for element in moving_elements:
                 element.toggle_visibility(not pause)
+            player.toggle_pause(pause)
 
+        if pause:
+            draw_pause_text(screen)
+        player.toggle_pause(pause)
         pygame.display.flip()
 
         dt = clock.tick(60) / 1000
