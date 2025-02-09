@@ -172,7 +172,9 @@ def launch_running_bunny(resolution=None, debug: bool = False, audio: bool = Tru
     WHEAT_COLOR = (245, 222, 179)
     score = 0
     max_score = 10  # Set the maximum score for the gauge
-    moving_tracks = [
+    moving_elements = []
+    moving_tracks = []
+    moving_tracks += [
         MovingTrack(
             speed=speed,
             num_elements=50,
@@ -182,7 +184,6 @@ def launch_running_bunny(resolution=None, debug: bool = False, audio: bool = Tru
             camera=camera,
         )
     ]
-    moving_elements = []
 
     for sign in [-1, 1]:
         moving_tracks.append(
@@ -274,6 +275,7 @@ def launch_running_bunny(resolution=None, debug: bool = False, audio: bool = Tru
         # Draw black holes
         shadow.x = player.x
         shadow.y = 0.0
+        shadow.z = player.z
         shadow.draw(screen)
         player.draw(screen, dt=dt)
         if debug:
