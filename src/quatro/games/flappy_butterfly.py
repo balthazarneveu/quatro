@@ -3,6 +3,7 @@ from quatro.graphics.background import draw_background_from_asset
 from quatro.graphics.animation.butterfly import Butterfly
 from quatro.control.control import ControlledPlayer
 from quatro.graphics.animation.wheat import Wheat
+from quatro.system.input_handler import KeyDebouncer
 from quatro.system.quit import handle_quit
 from quatro.system.window import init_screen
 import random
@@ -27,6 +28,7 @@ def launch_flappy_butterfly(
     clock = pygame.time.Clock()
     running = True
     pause = False
+    key_debouncer = KeyDebouncer(cooldown_ms=200)
     dt = 0
     w, h = screen.get_width(), screen.get_height()
     player_pos = pygame.Vector2(w / 2, h / 2)
@@ -78,7 +80,7 @@ def launch_flappy_butterfly(
             player.x -= 100 * dt
         if keys[pygame.K_RIGHT]:
             player.x += 100 * dt
-        if keys[pygame.K_p]:
+        if key_debouncer.is_key_pressed(pygame.K_p, keys):
             pause = not pause
         player.toggle_pause(pause)
         if not pause:

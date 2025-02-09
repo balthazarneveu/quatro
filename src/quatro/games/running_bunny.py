@@ -1,6 +1,7 @@
 import pygame
 from quatro.graphics.background import draw_background_from_asset
 from quatro.sound.sound import play_sound, toggle_audio
+from quatro.system.input_handler import KeyDebouncer
 
 from quatro.graphics.animation.bunny import Bunny, Shadow
 from quatro.system.quit import handle_quit
@@ -162,6 +163,7 @@ def launch_running_bunny(
     context = {}
     screen = init_screen(resolution)
     toggle_audio(audio)
+    key_debouncer = KeyDebouncer(cooldown_ms=200)
     w, h = screen.get_width(), screen.get_height()
     f_factor = 10.0
     camera = Camera(
@@ -330,14 +332,12 @@ def launch_running_bunny(
             camera.yaw += 20.0 * dt
         if keys[pygame.K_KP6] and camera.yaw > -MAX_YAW:
             camera.yaw -= 20.0 * dt
-        if keys[pygame.K_p]:
-            # Pause the game
+        if key_debouncer.is_key_pressed(pygame.K_p, keys=keys):
             pause = not pause
             for element in moving_tracks + moving_elements:
                 element.toggle_pause(pause)
             for element in moving_elements:
                 element.toggle_visibility(not pause)
-            player.toggle_pause(pause)
 
         if pause:
             draw_pause_text(screen)
