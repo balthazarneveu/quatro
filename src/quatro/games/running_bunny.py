@@ -1,6 +1,11 @@
 import pygame
 from quatro.graphics.background import draw_background_from_asset
-from quatro.sound.sound import play_sound, toggle_audio
+from quatro.sound.sound import (
+    play_sound,
+    toggle_audio,
+    stop_all_sounds,
+    pause_all_sounds,
+)
 from quatro.system.input_handler import KeyDebouncer
 
 from quatro.graphics.animation.bunny import Bunny, Shadow
@@ -12,6 +17,9 @@ from quatro.engine.pinhole_camera import Camera
 from math import sin, radians
 
 MAX_SCORE_WIN = "max_score_win"
+SCORE = "score"
+WIN = "win"
+
 DEFAULT_GAME_CONFIG = {MAX_SCORE_WIN: 10}
 
 
@@ -166,7 +174,7 @@ def launch_running_bunny(
 ) -> dict:
     max_score = game_config.get(MAX_SCORE_WIN, 10)
     context = {}
-    context = {"win": False, "score": 0}
+    context = {WIN: False, SCORE: 0}
     screen = init_screen(resolution)
     toggle_audio(audio)
     key_debouncer = KeyDebouncer(cooldown_ms=200)
@@ -340,6 +348,7 @@ def launch_running_bunny(
             camera.yaw -= 20.0 * dt
         if key_debouncer.is_key_pressed(pygame.K_p, keys=keys):
             pause = not pause
+            pause_all_sounds(pause)
             for element in moving_tracks + moving_elements:
                 element.toggle_pause(pause)
             for element in moving_elements:
@@ -347,6 +356,7 @@ def launch_running_bunny(
 
         if pause:
             draw_text(screen, "PAUSE")
+
         player.toggle_pause(pause)
 
         if score >= max_score:
@@ -358,11 +368,12 @@ def launch_running_bunny(
             player.enabled = False
         if winning_animation and not pause:
             player.z += 20.0 * dt
-            draw_text(screen, "WIN")
+            draw_text(screen, f"____ WIN ____ \n  SCORE = {score} ")
             if player.z > 100.0:
                 running = False
-                context = {"win": True, "score": score}
+                context = {WIN: True, SCORE: score}
         pygame.display.flip()
-
         dt = clock.tick(60) / 1000
+    stop_all_sounds()
+    del screen
     return context
