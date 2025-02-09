@@ -146,7 +146,8 @@ def draw_carrot_gauge(screen, score, max_score, position, size, draw_text=True):
         screen.blit(score_text, (x + width // 2 - 10, y + 2))
 
 
-def launch_running_bunny(resolution=None, debug: bool = False, audio: bool = True):
+def launch_running_bunny(resolution=None, debug: bool = False, audio: bool = True) -> dict:
+    context = {}
     screen = init_screen(resolution)
     toggle_audio(audio)
     w, h = screen.get_width(), screen.get_height()
@@ -252,7 +253,7 @@ def launch_running_bunny(resolution=None, debug: bool = False, audio: bool = Tru
     play_sound("chill_music", loop=1000)
     while running:
         keys = pygame.key.get_pressed()
-        running = handle_quit(keys)
+        running = handle_quit(keys, context)
         draw_background_from_asset(screen, current_background)
         for moving_track in moving_tracks + moving_elements:
             moving_track.move(dt=dt)
@@ -317,5 +318,4 @@ def launch_running_bunny(resolution=None, debug: bool = False, audio: bool = Tru
         pygame.display.flip()
 
         dt = clock.tick(60) / 1000
-
-    pygame.quit()
+    return context

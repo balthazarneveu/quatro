@@ -1,6 +1,8 @@
 from quatro.games.flappy_butterfly_interactive_pipe import launch_flappy_pipe
 from quatro.games.flappy_butterfly import launch_flappy_butterfly
 from quatro.games.running_bunny import launch_running_bunny
+from quatro.system.quit import QUIT
+import pygame
 import argparse
 import sys
 
@@ -28,4 +30,9 @@ if __name__ == "__main__":
     assert game_to_launch is not None, f"Game {game_to_launch} not found in GAMES_LIST"
     game_func = GAMES_LIST.get(game_to_launch, None)
     assert game_func is not None, f"Game {game_to_launch} not found in GAMES_LIST"
-    game_func(resolution=args.resolution, debug=args.debug, audio=not args.mute)
+    context = {}
+    while not context.get(QUIT, False):
+        context = game_func(
+            resolution=args.resolution, debug=args.debug, audio=not args.mute
+        )
+    pygame.quit()

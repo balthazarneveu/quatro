@@ -20,7 +20,8 @@ def update_physics_model(player: ControlledPlayer, trigger_jump=False, dt=0):
 
 def launch_flappy_butterfly(
     resolution=(1280, 720), debug: bool = False, audio: bool = True
-):
+) -> dict:
+    context = {}
     # pygame setup
     screen = init_screen(resolution)
     clock = pygame.time.Clock()
@@ -47,7 +48,7 @@ def launch_flappy_butterfly(
 
     while running:
         keys = pygame.key.get_pressed()
-        running = handle_quit(keys)
+        running = handle_quit(keys, context)
         # fill the screen with an image
 
         draw_background_from_asset(screen, current_background)
@@ -93,5 +94,4 @@ def launch_flappy_butterfly(
         # dt is delta time in seconds since last frame, used for framerate-
         # independent physics.
         dt = clock.tick(60) / 1000
-
-    pygame.quit()
+    return context

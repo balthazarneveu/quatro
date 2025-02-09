@@ -8,6 +8,7 @@ from quatro.graphics.animation.butterfly_numpy import draw_butterfly
 import numpy as np
 from PIL import Image
 from quatro.graphics.assets.image_assets import BACKGROUNDS, PATH, SIZE
+from quatro.system.quit import QUIT
 import logging
 
 
@@ -40,7 +41,6 @@ def physics_model(jump=False, state={}):
         trigger_jump = False
     if trigger_jump:
         state["velocity"] = state.get("velocity", 0) + 0.01 * 30 * 3
-        print("jump", state["velocity"])
     if state["y"] > 0:
         state["velocity"] = state.get("velocity", 0) - 0.01 / 10.0 * 2
     state["velocity"] = np.clip(state["velocity"], None, 0.2)  # keep within bounds
@@ -95,7 +95,15 @@ def flappy_pipe():
     return out
 
 
-def launch_flappy_pipe(resolution=(1280, 720), debug: bool = False, audio: bool = True):
+def launch_flappy_pipe(
+    resolution=(1280, 720), debug: bool = False, audio: bool = True
+) -> dict:
+    from interactive_pipe.helper import _private
+
+    _private.registered_controls_names = (
+        []
+    )  # this is for notebooks where you re-execute cells everytime.
+
     interactive(background_name=("sunset_field", list(BACKGROUNDS.keys())))(
         get_background
     )
@@ -104,6 +112,7 @@ def launch_flappy_pipe(resolution=(1280, 720), debug: bool = False, audio: bool 
     interactive(time=TimeControl(update_interval_ms=10, pause_resume_key="p"))(get_time)
     interactive(pipe_speed=(0.1, [0.0, 1.0]))(draw_pipes)
     interactive_pipeline(gui="qt", cache=True, size=resolution)(flappy_pipe)()
+    return {QUIT: True}
 
 
 if __name__ == "__main__":
