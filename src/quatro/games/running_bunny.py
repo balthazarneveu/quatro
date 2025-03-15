@@ -329,6 +329,11 @@ def launch_running_bunny(
         # Gravity in action!
         ground_level_player = 2.0 * player.size
         side_limit = TRACK_WIDTH - 1.5 * player.size
+
+        if WEBCAM in controller:
+            body_control.process_webcam()
+            if body_control.current_position is not None:
+                player.x = (body_control.current_position - 0.5) * 1.3 * TRACK_WIDTH
         if player.x < -side_limit:
             player.x = -side_limit
         if player.x > side_limit:
@@ -344,10 +349,6 @@ def launch_running_bunny(
         MAX_YAW = 30
         # Keyboard control
         # ----------------
-        if WEBCAM in controller:
-            body_control.process_webcam()
-            if body_control.current_position is not None:
-                player.x = (body_control.current_position - 0.5) * 1.3 * TRACK_WIDTH
         if KEYBOARD in controller:
             if keys[pygame.K_LEFT]:
                 player.x -= speed / f_factor * 5.0 * dt
