@@ -4,6 +4,7 @@ from interactive_pipe import (
     TimeControl,
     KeyboardControl,
 )
+from quatro.control.properties import KEYBOARD
 from quatro.graphics.animation.butterfly_numpy import draw_butterfly
 import numpy as np
 from PIL import Image
@@ -96,7 +97,10 @@ def flappy_pipe():
 
 
 def launch_flappy_pipe(
-    resolution=(1280, 720), debug: bool = False, audio: bool = True
+    resolution=(1280, 720),
+    debug: bool = False,
+    audio: bool = True,
+    controller: list = [KEYBOARD],
 ) -> dict:
     from interactive_pipe.helper import _private
 
@@ -108,6 +112,9 @@ def launch_flappy_pipe(
         get_background
     )
     interactive(flapping_speed=(10, [0.0, 20.0]))(place_butteffly)
+    assert (
+        KEYBOARD in controller
+    ), f"KEYBOARD not in controller {controller} - not supported with interactive pipe"
     interactive(jump=KeyboardControl(False, name="jump", keydown=" "))(physics_model)
     interactive(time=TimeControl(update_interval_ms=10, pause_resume_key="p"))(get_time)
     interactive(pipe_speed=(0.1, [0.0, 1.0]))(draw_pipes)

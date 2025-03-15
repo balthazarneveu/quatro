@@ -1,0 +1,5 @@
+KEYBOARD = "keyboard"
+MOUSE = "mouse"
+JOYSTICK = "joystick"
+TOUCH = "touch"
+WEBCAM = "webcam"

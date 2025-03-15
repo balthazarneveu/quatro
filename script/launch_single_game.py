@@ -1,3 +1,4 @@
+from quatro.control.properties import KEYBOARD, WEBCAM
 from quatro.games.flappy_butterfly_interactive_pipe import launch_flappy_pipe
 from quatro.games.flappy_butterfly import launch_flappy_butterfly
 from quatro.games.running_bunny import launch_running_bunny
@@ -20,6 +21,7 @@ def populate_parser() -> argparse.ArgumentParser:
     parser.add_argument("-r", "--resolution", type=int, nargs=2, default=None)
     parser.add_argument("-d", "--debug", action="store_true")
     parser.add_argument("-m", "--mute", action="store_true")
+    parser.add_argument("-n", "--no-webcam", action="store_true")
     return parser
 
 
@@ -31,8 +33,16 @@ if __name__ == "__main__":
     game_func = GAMES_LIST.get(game_to_launch, None)
     assert game_func is not None, f"Game {game_to_launch} not found in GAMES_LIST"
     context = {}
+    controller = [KEYBOARD]
+    if not args.no_webcam:
+        controller.append(WEBCAM)
     while not context.get(QUIT, False):
         context = game_func(
-            resolution=args.resolution, debug=args.debug, audio=not args.mute
+            resolution=args.resolution,
+            debug=args.debug,
+            audio=not args.mute,
+            controller=controller,
         )
+        # if context.get("win", False):
+        #     game_func = GAMES_LIST.get("flappy", None)
     pygame.quit()

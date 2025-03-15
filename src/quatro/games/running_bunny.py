@@ -1,4 +1,5 @@
 import pygame
+from quatro.control.properties import KEYBOARD, WEBCAM
 from quatro.graphics.background import draw_background_from_asset
 from quatro.sound.sound import (
     play_sound,
@@ -15,6 +16,7 @@ from quatro.engine.planes import Floor, Wall, FacingWall
 from quatro.engine.endless_track import MovingTrack, MovingElement
 from quatro.engine.pinhole_camera import Camera
 from math import sin, radians
+from typing import List
 
 MAX_SCORE_WIN = "max_score_win"
 SCORE = "score"
@@ -171,6 +173,7 @@ def launch_running_bunny(
     debug: bool = False,
     audio: bool = True,
     game_config: dict = DEFAULT_GAME_CONFIG,
+    controller: List[str] = [KEYBOARD],
 ) -> dict:
     max_score = game_config.get(MAX_SCORE_WIN, 10)
     context = {}
@@ -334,19 +337,28 @@ def launch_running_bunny(
         if keys[pygame.K_RIGHT]:
             player.x += speed / f_factor * 5.0 * dt
         MAX_YAW = 30
-        if keys[pygame.K_KP8]:
-            camera.camera_position.y += 1.0 * f_factor * dt
-        if keys[pygame.K_KP2]:
-            camera.camera_position.y -= 1.0 * f_factor * dt
-        if keys[pygame.K_PAGEDOWN]:
-            camera.pitch += 20.0 * dt
-        if keys[pygame.K_PAGEUP]:
-            camera.pitch -= 20.0 * dt
-        if keys[pygame.K_KP4] and camera.yaw < MAX_YAW:
-            camera.yaw += 20.0 * dt
-        if keys[pygame.K_KP6] and camera.yaw > -MAX_YAW:
-            camera.yaw -= 20.0 * dt
-        if key_debouncer.is_key_pressed(pygame.K_p, keys=keys):
+        # Keyboard control
+        # ----------------
+        if KEYBOARD in controller:
+            if keys[pygame.K_KP8]:
+                camera.camera_position.y += 1.0 * f_factor * dt
+            if keys[pygame.K_KP2]:
+                camera.camera_position.y -= 1.0 * f_factor * dt
+            if keys[pygame.K_PAGEDOWN]:
+                camera.pitch += 20.0 * dt
+            if keys[pygame.K_PAGEUP]:
+                camera.pitch -= 20.0 * dt
+            if keys[pygame.K_KP4] and camera.yaw < MAX_YAW:
+                camera.yaw += 20.0 * dt
+            if keys[pygame.K_KP6] and camera.yaw > -MAX_YAW:
+                camera.yaw -= 20.0 * dt
+            if key_debouncer.is_key_pressed(pygame.K_p, keys=keys):
+                trigger_pause = True
+            else:
+                trigger_pause = False
+        # Pause logic
+        # ----------------
+        if trigger_pause:
             pause = not pause
             pause_all_sounds(pause)
             for element in moving_tracks + moving_elements:
@@ -359,6 +371,8 @@ def launch_running_bunny(
 
         player.toggle_pause(pause)
 
+        # Win event
+        # ----------------
         if score >= max_score:
             winning_animation = True
             moving_elements = []

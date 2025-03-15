@@ -1,4 +1,5 @@
 import pygame
+from quatro.control.properties import KEYBOARD
 from quatro.graphics.background import draw_background_from_asset
 from quatro.graphics.animation.butterfly import Butterfly
 from quatro.control.control import ControlledPlayer
@@ -20,7 +21,10 @@ def update_physics_model(player: ControlledPlayer, trigger_jump=False, dt=0):
 
 
 def launch_flappy_butterfly(
-    resolution=(1280, 720), debug: bool = False, audio: bool = True
+    resolution=(1280, 720),
+    debug: bool = False,
+    audio: bool = True,
+    controller: list = [KEYBOARD],
 ) -> dict:
     context = {}
     # pygame setup
@@ -76,16 +80,17 @@ def launch_flappy_butterfly(
         player.draw(screen, dt=dt)
 
         # Game control update logic
-        if keys[pygame.K_LEFT]:
-            player.x -= 100 * dt
-        if keys[pygame.K_RIGHT]:
-            player.x += 100 * dt
-        if key_debouncer.is_key_pressed(pygame.K_p, keys):
-            pause = not pause
-        player.toggle_pause(pause)
-        if not pause:
-            update_physics_model(player, keys[pygame.K_SPACE], dt=dt)
-            player.flap_speed = abs(max(-5, -player.velocity / 10))
+        if KEYBOARD in controller:
+            if keys[pygame.K_LEFT]:
+                player.x -= 100 * dt
+            if keys[pygame.K_RIGHT]:
+                player.x += 100 * dt
+            if key_debouncer.is_key_pressed(pygame.K_p, keys):
+                pause = not pause
+            player.toggle_pause(pause)
+            if not pause:
+                update_physics_model(player, keys[pygame.K_SPACE], dt=dt)
+                player.flap_speed = abs(max(-5, -player.velocity / 10))
         if player.y < 0:
             player.y = screen.get_height() - 30
             current_background = "sunset_field_large"
