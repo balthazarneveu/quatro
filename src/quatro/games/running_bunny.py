@@ -284,9 +284,18 @@ def launch_running_bunny(
     )  # looks like  a shadow
     current_background = "night_wheat_field"
     play_sound("chill_music", loop=1000)
+    if WEBCAM in controller:
+        from quatro.control.webcam import Controller
+
+        body_control = Controller(
+            webcam_show=False, allow_hand_control=True, allow_body_control=False
+        )
     while running:
-        keys = pygame.key.get_pressed()
-        running = handle_quit(keys, context)
+        if KEYBOARD in controller:
+            keys = pygame.key.get_pressed()
+            running = handle_quit(keys, context)
+        else:
+            running = handle_quit([], context)
         draw_background_from_asset(screen, current_background)
         for moving_track in moving_tracks + moving_elements:
             moving_track.move(dt=dt)
@@ -331,15 +340,18 @@ def launch_running_bunny(
                 player.y = ground_level_player
                 player.global_intensity = 1.0
                 player.enabled = True
-        if keys[pygame.K_LEFT]:
-            player.x -= speed / f_factor * 5.0 * dt
-
-        if keys[pygame.K_RIGHT]:
-            player.x += speed / f_factor * 5.0 * dt
         MAX_YAW = 30
         # Keyboard control
         # ----------------
+        if WEBCAM in controller:
+            body_control.process_webcam()
+            if body_control.current_position is not None:
+                player.x = (body_control.current_position - 0.5) * 1.3 * TRACK_WIDTH
         if KEYBOARD in controller:
+            if keys[pygame.K_LEFT]:
+                player.x -= speed / f_factor * 5.0 * dt
+            if keys[pygame.K_RIGHT]:
+                player.x += speed / f_factor * 5.0 * dt
             if keys[pygame.K_KP8]:
                 camera.camera_position.y += 1.0 * f_factor * dt
             if keys[pygame.K_KP2]:
