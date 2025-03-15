@@ -288,8 +288,9 @@ def launch_running_bunny(
         from quatro.control.webcam import Controller
 
         body_control = Controller(
-            webcam_show=False, allow_hand_control=True, allow_body_control=False
+            webcam_show=False, allow_hand_control=False, allow_body_control=True
         )
+        context["body_control"] = body_control
     while running:
         if KEYBOARD in controller:
             keys = pygame.key.get_pressed()
@@ -401,5 +402,7 @@ def launch_running_bunny(
         pygame.display.flip()
         dt = clock.tick(60) / 1000
     stop_all_sounds()
+    if WEBCAM in controller:
+        body_control.release_resources()
     del screen
     return context
