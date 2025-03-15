@@ -1,4 +1,13 @@
 import cv2
+import logging
+
+try:
+    from picamera2 import Picamera2
+
+    PI_CAM_AVAILABLE = True
+except Exception as e:
+    logging.info(f"Picamera2 not available: {e} , falling back to cv2.VideoCapture")
+    PI_CAM_AVAILABLE = False
 import mediapipe as mp
 import time
 from quatro.control.motion_detection_heuristics import HeuristicsDetector
@@ -39,9 +48,18 @@ class Controller:
             )
 
         # OpenCV webcam setup
-        self.cap = cv2.VideoCapture(0)
-        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 320)
-        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 240)
+        if not PI_CAM_AVAILABLE:
+            self.cap = cv2.VideoCapture(0)
+            self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 320)
+            self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 240)
+        else:
+            picam2 = Picamera2()
+            picam2.preview_configuration.main.size = (800, 800)
+            picam2.preview_configuration.main.format = "RGB888"
+            picam2.preview_configuration.align()
+            picam2.configure("preview")
+            picam2.start()
+            self.cap = picam2
 
         # Control variables
         self.hand_position = None
@@ -54,16 +72,21 @@ class Controller:
         self.current_position = None
         self.current_action = None
 
+    def get_frame_from_webcam(self):
+        if not PI_CAM_AVAILABLE:
+            _, frame = self.cap.read()
+        else:
+            frame = self.cap.capture_array()
+        return frame
+
     def process_webcam(self):
         """Process webcam input to detect hands or body."""
-
-        # if self.frame_count % 3 == 0:
         if True:
             # Reset control flags
             self.hand_control = False
             self.body_control = False
             self.current_position = None
-            _, frame = self.cap.read()
+            frame = self.get_frame_from_webcam()
             frame = cv2.flip(frame, 1)
             rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
@@ -116,7 +139,6 @@ class Controller:
                         )
                         for keypoint_name, position in positions.items()
                     }
-                    # print(results_pose.pose_landmarks)
                     self.motion_detector.infer_action(
                         converted_positions, capture_time=current_time
                     )
