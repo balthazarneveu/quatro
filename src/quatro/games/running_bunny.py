@@ -21,8 +21,12 @@ from typing import List
 MAX_SCORE_WIN = "max_score_win"
 SCORE = "score"
 WIN = "win"
+DIFFICULTY = "difficulty"
+EASY = 0
+MEDIUM = 1
+HARD = 2
 
-DEFAULT_GAME_CONFIG = {MAX_SCORE_WIN: 10}
+DEFAULT_GAME_CONFIG = {MAX_SCORE_WIN: 10, DIFFICULTY: EASY}
 
 
 def draw_text(screen: pygame.Surface, text: str):
@@ -262,20 +266,21 @@ def launch_running_bunny(
             camera=camera,
         )
     )
-    moving_elements.append(
-        MovingElement(
-            speed=speed,
-            num_elements=10,
-            y=0.0 * CROP_TOP,
-            z_source=Z_SOURCE,
-            x_range=[-TRACK_WIDTH * 0.6, TRACK_WIDTH * 0.6],
-            xy_size=[0.2 * TRACK_WIDTH, 0.2 * TRACK_WIDTH],
-            z_size=0.0,
-            element_type=Hole,
-            color=(255, 165, 0),  # orange color
-            camera=camera,
+    if game_config[DIFFICULTY] > EASY:
+        moving_elements.append(
+            MovingElement(
+                speed=speed,
+                num_elements=10,
+                y=0.0 * CROP_TOP,
+                z_source=Z_SOURCE,
+                x_range=[-TRACK_WIDTH * 0.6, TRACK_WIDTH * 0.6],
+                xy_size=[0.2 * TRACK_WIDTH, 0.2 * TRACK_WIDTH],
+                z_size=0.0,
+                element_type=Hole,
+                color=(255, 165, 0),  # orange color
+                camera=camera,
+            )
         )
-    )
     RESTART_HEIGHT = 40.0
     player_pos = 0.0, RESTART_HEIGHT, 50.0
     player = Bunny(*player_pos, size=5.0, animation_speed=10, camera=camera)
