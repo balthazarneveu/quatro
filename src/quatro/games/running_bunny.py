@@ -17,6 +17,7 @@ from quatro.engine.endless_track import MovingTrack, MovingElement
 from quatro.engine.pinhole_camera import Camera
 from math import sin, radians
 from typing import List
+import random
 
 MAX_SCORE_WIN = "max_score_win"
 SCORE = "score"
@@ -41,6 +42,19 @@ class Carrot(FacingWall):
     def __init__(self, *args, score_multiplier=1, **kwargs):
         super().__init__(*args, **kwargs)
         self.score_multiplier = score_multiplier
+        if self.color is None:
+            self.randomize_color()
+        else:
+            self.standardize_color()
+
+    def randomize_color(self):
+        self.color = [random.randint(0, 255) for _ in range(3)]
+        self.leaf_color = [random.randint(0, 255) for _ in range(3)]
+        self.leaf_color = [self.leaf_color] * 2
+
+    def standardize_color(self):
+        self.color = [255, 165, 0]
+        self.leaf_color = [[0, 100, 0], [0, 100, 0]]  # dark green color
 
     def get_coordinates(self):
         pts_3d = super().get_coordinates()
@@ -53,12 +67,12 @@ class Carrot(FacingWall):
                 "content": {"points": pts_3d_triangle, "color": self.color},
             }
         ]
-        for angle in [-20, 20]:
+        for side, angle in enumerate([-20, 20]):
             leaf_size = self.xy_size[1] * 0.7
             leaf = {
                 "type": "ellipse",
                 "content": {
-                    "color": (0, 100, 0),  # dark green color
+                    "color": self.leaf_color[side],  # dark green color
                     "center": top
                     + pygame.Vector3(
                         sin(radians(-angle)) * leaf_size / 2.0, leaf_size / 2.0, 0
@@ -318,6 +332,11 @@ def launch_running_bunny(
                             play_sound("booing")
                         if reward_element.score_multiplier > 0:
                             play_sound("beep")
+                            for _reward_element in reward_elements.elements:
+                                if score >= 3 and score % 2 == 1:
+                                    _reward_element.randomize_color()
+                                else:
+                                    _reward_element.standardize_color()
 
         # Draw black holes
         shadow.x = player.x
