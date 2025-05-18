@@ -208,6 +208,7 @@ class Controller:
                                 cv2.circle(rgb_frame, (int(width-x), int(y)), 5, (0, 0, 255), -1)
                     xy_normed_position = np.array([(width-xy[0]) / width, xy[1] / height])
                     self.current_position = xy_normed_position[0]
+                    self.current_position = 0.5 + 2.2*(self.current_position  - 0.5)
                     position_buffer = []
                     pass
             else:
