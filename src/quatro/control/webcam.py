@@ -259,3 +259,11 @@ class Controller:
             pass
         cv2.destroyAllWindows()
 
+
+if __name__ == "__main__":
+    controller = Controller(webcam_show=True)
+    while True:
+        controller.process_webcam()
+        if cv2.waitKey(1) & 0xFF == ord("q"):
+            break
+    controller.release_resources()
