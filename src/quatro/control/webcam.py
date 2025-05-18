@@ -11,6 +11,7 @@ except:
     PI_CAM_AVAILABLE=False
 
 try:
+    position_buffer = []
     if PI_CAM_AVAILABLE and True:
         DETECTION_THRESHOLD = 0.3
         imx500 = None
@@ -66,6 +67,8 @@ try:
         def picamera2_pre_callback(request: CompletedRequest):
             """Analyse the detected objects in the output tensor and draw them on the main output image."""
             boxes, scores, keypoints = ai_output_tensor_parse(request.get_metadata())
+            global position_buffer
+            position_buffer.append((boxes, scores, keypoints))
             ai_output_tensor_draw(request, boxes, scores, keypoints)
 except ImportError:
     traceback.print_exc()
@@ -171,17 +174,42 @@ class Controller:
         return frame
     def process_webcam(self):
         """Process webcam input to detect hands or body."""
-        if self.frame_count % 2 == 0:
+        global position_buffer
+
+        if PI_AI_CAMERA_AVAILABLE:
+            drop_frequency = 1 # Try running at maximum speed since the AI HW accelerator is used
+        else:
+            drop_frequency = 2
+        if self.frame_count % drop_frequency == 0:
             # Reset control flags
             self.hand_control = False
             self.body_control = False
             self.current_position = None
             frame = self.get_frame_from_webcam()
-            frame = cv2.flip(frame, 1)  
+            frame = cv2.flip(frame, 1)
             
             if PI_AI_CAMERA_AVAILABLE:
                 rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                pass
+                height, width = rgb_frame.shape[-3:-1]
+                if len(position_buffer) > 0:
+                    boxes, scores, keypoints = position_buffer[-1]
+                    xy_array = keypoints[0, ...]
+                    weight = xy_array[..., 2:]
+                    total_weight = weight.sum()
+                    if total_weight <= 0.2:
+                        self.current_position = None
+                    else:
+                        xy = np.sum(xy_array*weight, axis=0)
+                        xy = xy[0:2] / total_weight
+
+                        if scores is not None and len(scores) > 0 and self.webcam_show:
+                            for kp in keypoints[0]:
+                                x, y, z = kp
+                                cv2.circle(rgb_frame, (int(width-x), int(y)), 5, (0, 0, 255), -1)
+                    xy_normed_position = np.array([(width-xy[0]) / width, xy[1] / height])
+                    self.current_position = xy_normed_position[0]
+                    position_buffer = []
+                    pass
             else:
                 rgb_frame = frame
                 # Hand detection
