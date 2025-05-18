@@ -162,6 +162,7 @@ class Controller:
         self.webcam_show = webcam_show
         self.current_position = None
         self.current_action = None
+        self.previous_position = None
     def get_frame_from_webcam(self):
         if not PI_CAM_AVAILABLE:
                 _, frame = self.cap.read()
@@ -170,7 +171,7 @@ class Controller:
         return frame
     def process_webcam(self):
         """Process webcam input to detect hands or body."""
-        if self.frame_count % 5 == 0:
+        if self.frame_count % 2 == 0:
             # Reset control flags
             self.hand_control = False
             self.body_control = False
@@ -242,6 +243,11 @@ class Controller:
             if self.webcam_show:
                 cv2.imshow("Webcam Feed", rgb_frame)
                 cv2.waitKey(1)
+        if self.current_position is not None:
+            if self.previous_position is None:
+                self.previous_position = self.current_position
+            self.current_position = 0.7 * self.current_position + 0.3 * self.previous_position
+            self.previous_position = self.current_position
         self.frame_count += 1
         return
 
