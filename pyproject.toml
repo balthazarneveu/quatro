@@ -28,7 +28,3 @@ classifiers = [
 [project.urls]
 "Homepage" = "https://github.com/balthazarneveu/quatro"
 "Bug Tracker" = "https://github.com/balthazarneveu/quatro/issues"
-
-[project.optional-dependencies]
-
-full = ["PyQt6>=6.5.2", "PyQt6_sip>=13.5.2", "interactive_pipe>=0.8.7"]
