@@ -20,7 +20,6 @@ def play_sound(sound_name: str, loop: int = 0) -> None:
         sound_name (str): Name of the sound to play
         loop (int): Number of times to loop the sound (-1 for infinite)
     """
-    global mute, active_sounds
     if mute:
         return
     assert sound_name in ALL_SOUNDS, f"Sound not found: {sound_name}"

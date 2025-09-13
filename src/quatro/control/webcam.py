@@ -2,6 +2,8 @@ import cv2
 import numpy as np
 from pathlib import Path
 import traceback
+import time
+from quatro.control.motion_detection_heuristics import HeuristicsDetector
 
 PI_AI_CAMERA_AVAILABLE = False
 try:
@@ -9,12 +11,12 @@ try:
 
     PI_CAM_AVAILABLE = True
     picam2 = None
-except:
+except ImportError:
     PI_CAM_AVAILABLE = False
 
 try:
     position_buffer = []
-    if PI_CAM_AVAILABLE and True:
+    if PI_CAM_AVAILABLE:
         DETECTION_THRESHOLD = 0.3
         imx500 = None
         intrinsics = None
@@ -38,7 +40,6 @@ try:
         from picamera2.devices.imx500.postprocess import COCODrawer
 
         def get_drawer():
-            global intrinsics
             categories = intrinsics.labels
             categories = [c for c in categories if c and c != "-"]
             return COCODrawer(categories, imx500, needs_rescale_coords=False)
@@ -46,7 +47,6 @@ try:
         def ai_output_tensor_parse(metadata: dict):
             """Parse the output tensor into a number of detected objects, scaled to the ISP output."""
             global last_boxes, last_scores, last_keypoints
-            global imx500
             np_outputs = imx500.get_outputs(metadata=metadata, add_batch=True)
             if np_outputs is not None:
                 keypoints, scores, boxes = postprocess_higherhrnet(
@@ -90,7 +90,6 @@ try:
         def picamera2_pre_callback(request: CompletedRequest):
             """Analyse the detected objects in the output tensor and draw them on the main output image."""
             boxes, scores, keypoints = ai_output_tensor_parse(request.get_metadata())
-            global position_buffer
             position_buffer.append((boxes, scores, keypoints))
             ai_output_tensor_draw(request, boxes, scores, keypoints)
 
@@ -107,8 +106,6 @@ if not PI_AI_CAMERA_AVAILABLE:
     mp_hands = mp.solutions.hands
     mp_pose = mp.solutions.pose
     keypoints_names = [e for e in mp.solutions.pose.PoseLandmark]
-import time
-from quatro.control.motion_detection_heuristics import HeuristicsDetector
 
 
 class Controller:
@@ -167,7 +164,7 @@ class Controller:
                     elif intrinsics.task != "pose estimation":
                         print("Network is not a pose estimation task")
                         exit()
-                    global drawer
+                    # global drawer
 
                     # drawer = get_drawer()
                     picam2 = Picamera2(imx500.camera_num)

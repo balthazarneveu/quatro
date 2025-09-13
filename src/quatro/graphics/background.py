@@ -21,7 +21,6 @@ def draw_background(screen: pygame.display, background_image_path: Path) -> None
         background_image_path (Path): Path to the background image.
         Blit the image onto the screen to wipe out the previous
     """
-    global CACHED_IMAGES
     width, heigth = screen.get_width(), screen.get_height()
     key = (background_image_path, (width, heigth))
     background_image = CACHED_IMAGES.get(key, None)
