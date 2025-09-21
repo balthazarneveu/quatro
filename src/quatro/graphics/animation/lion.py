@@ -30,6 +30,8 @@ class Lion(ControlledPlayer):
         frame_w = sheet_w // 2
         frame_h = sheet_h // 2
 
+        self.size = size / frame_h  # scale based on height
+
         # Cut out the 4 frames
         self.frames = []
         for row in range(2):
@@ -58,15 +60,6 @@ class Lion(ControlledPlayer):
         if action in self.actions:
             self.current_action = action
 
-    # def update_movement(self, keys, speed=200, dt=0.016):
-    #     """Handle left/right movement"""
-    #     if keys[pygame.K_LEFT]:
-    #         self.x -= speed * dt
-    #         self.facing_right = False
-    #     elif keys[pygame.K_RIGHT]:
-    #         self.x += speed * dt
-    #         self.facing_right = True
-
     def determine_direction(self) -> None:
         if not hasattr(self, "_last_x"):
             self._last_x = self.x
@@ -80,19 +73,41 @@ class Lion(ControlledPlayer):
 
     def draw(self, screen: pygame.Surface, dt: float = 0) -> None:
         """Draw the lion on screen and update bounding box"""
-        # Determine facing direction based on x position delta (estimate velocity)
+        if not self.camera or not self.enabled:
+            return
+
+        # Determine facing direction based on x position delta
         self.determine_direction()
 
+        # Get the current frame
         frame = self.actions[self.current_action]
 
         # Flip if facing left
         if self.facing_right:
             frame = pygame.transform.flip(frame, True, False)
 
-        rect = frame.get_rect(
-            center=(self.x + screen.get_width() // 2, screen.get_height() // 2 - self.y)
-        )
-        screen.blit(frame, rect)
+        # Project the center position using the camera
+        center_3d = pygame.Vector3(self.x, self.y, self.z)
+        center_2d = self.camera.project(center_3d)
+        if center_2d is None:
+            return
+
+        # Calculate projected size based on a reference point offset in z
+        ref_point = self.camera.project(center_3d + pygame.Vector3(1, 0, 0))
+        if ref_point is None:
+            return
+
+        # Scale factor based on z-distance (perspective)
+        scale_factor = abs((center_2d - ref_point).length()) * self.size
+
+        # Scale the frame
+        frame_w, frame_h = frame.get_size()
+        scaled_size = (int(frame_w * scale_factor), int(frame_h * scale_factor))
+        scaled_frame = pygame.transform.scale(frame, scaled_size)
+
+        # Position the sprite
+        rect = scaled_frame.get_rect(center=center_2d)
+        screen.blit(scaled_frame, rect)
 
         # Update bounding box (used for collision detection)
         self.bounding_box = rect

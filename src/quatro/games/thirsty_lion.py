@@ -346,10 +346,10 @@ def launch_thirsty_lion(
                 camera=camera,
             )
         )
-    RESTART_HEIGHT = 40.0
+    RESTART_HEIGHT = 10.
     player_pos = 0.0, RESTART_HEIGHT, 50.0
     # player = Bunny(*player_pos, size=5.0, animation_speed=10, camera=camera)
-    player = Lion(*player_pos, size=0.2, camera=camera)
+    player = Lion(*player_pos, size=3., camera=camera)
     # shadow = Shadow(
     #     player.x, player.body_bottom, player.z, shadow_size=5.0, camera=camera
     # )  # looks like  a shadow
