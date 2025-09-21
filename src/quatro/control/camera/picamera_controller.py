@@ -61,71 +61,80 @@ class PiCameraController(CameraController):
 
         # Initialize camera
         self.imx500.show_network_fw_progress_bar()
+
+        # Set up pre-callback for AI processing
+        def pre_callback(request):
+            metadata = request.get_metadata()
+            np_outputs = self.imx500.get_outputs(metadata=metadata, add_batch=True)
+            if np_outputs is not None:
+                keypoints, scores, boxes = postprocess_higherhrnet(
+                    outputs=np_outputs,
+                    img_size=self.WINDOW_SIZE_H_W,
+                    img_w_pad=(0, 0),
+                    img_h_pad=(0, 0),
+                    detection_threshold=self.DETECTION_THRESHOLD,
+                    network_postprocess=True,
+                )
+                if scores is not None and len(scores) > 0:
+                    self.last_keypoints = np.reshape(
+                        np.stack(keypoints, axis=0), (len(scores), 17, 3)
+                    )
+                    self.last_boxes = [np.array(b) for b in boxes]
+                    self.last_scores = np.array(scores)
+
+        self.picam2.pre_callback = pre_callback
         self.picam2.start(config, show_preview=False)
         self.imx500.set_auto_aspect_ratio()
 
         # Buffer for position data
-        self.position_buffer = []
         self.last_boxes = None
         self.last_scores = None
         self.last_keypoints = None
 
     def get_frame_from_webcam(self):
         """Get a frame from the camera."""
-        return self.picam2.capture_array()
+        frame = self.picam2.capture_array()
+        return cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
     def process_frame(self, frame):
         """Process a frame using IMX500 AI capabilities."""
         height, width = frame.shape[:2]
-        metadata = {"height": height, "width": width}  # Add any necessary metadata
 
-        # Get AI outputs
-        np_outputs = self.imx500.get_outputs(metadata=metadata, add_batch=True)
-        if np_outputs is not None:
-            keypoints, scores, boxes = postprocess_higherhrnet(
-                outputs=np_outputs,
-                img_size=self.WINDOW_SIZE_H_W,
-                img_w_pad=(0, 0),
-                img_h_pad=(0, 0),
-                detection_threshold=self.DETECTION_THRESHOLD,
-                network_postprocess=True,
-            )
+        # Process the last available keypoints from the AI callback
+        if (
+            self.last_keypoints is not None
+            and self.last_scores is not None
+            and len(self.last_scores) > 0
+        ):
 
-            if scores is not None and len(scores) > 0:
-                self.last_keypoints = np.reshape(
-                    np.stack(keypoints, axis=0), (len(scores), 17, 3)
-                )
-                self.last_boxes = [np.array(b) for b in boxes]
-                self.last_scores = np.array(scores)
+            # Process keypoints for position tracking
+            xy_array = self.last_keypoints[0, ...]
+            weight = xy_array[..., 2:]
+            total_weight = weight.sum()
 
-                # Process keypoints for position tracking
-                xy_array = self.last_keypoints[0, ...]
-                weight = xy_array[..., 2:]
-                total_weight = weight.sum()
+            if total_weight > 0.2:
+                xy = np.sum(xy_array * weight, axis=0)
+                xy = xy[0:2] / total_weight
 
-                if total_weight > 0.2:
-                    xy = np.sum(xy_array * weight, axis=0)
-                    xy = xy[0:2] / total_weight
+                # Update position with normalization
+                xy_normed_position = np.array([(width - xy[0]) / width, xy[1] / height])
+                self.current_position = xy_normed_position[0]
+                self.current_position = 0.5 + 2.2 * (self.current_position - 0.5)
 
-                    # Update position with normalization
-                    xy_normed_position = np.array(
-                        [(width - xy[0]) / width, xy[1] / height]
-                    )
-                    self.current_position = xy_normed_position[0]
-                    self.current_position = 0.5 + 2.2 * (self.current_position - 0.5)
-
-                    if self.webcam_show and self.drawer is not None:
-                        for kp in self.last_keypoints[0]:
-                            x, y, z = kp
+                # Draw pose keypoints if display is enabled
+                if self.webcam_show and self.drawer is not None:
+                    for kp in self.last_keypoints[0]:
+                        x, y, z = kp
+                        if z > self.DETECTION_THRESHOLD:
                             cv2.circle(
                                 frame,
                                 (int(width - x), int(y)),
                                 5,
-                                (0, 0, 255),
+                                (0, 0, 255),  # BGR format for display
                                 -1,
                             )
-                else:
-                    self.current_position = None
+            else:
+                self.current_position = None
 
         return frame
 
