@@ -35,10 +35,13 @@ class RainManager:
         track_width: float = 10.0,
         track_depth: float = 100.0,
         camera: Camera = None,
+        moving_elements: List[MovingElement] = None,
+        score_multiplier: float = 0.01,
     ):
         self.track_width = track_width
         self.track_depth = track_depth
         self.camera = camera
+        self.moving_elements = moving_elements
         self.raindrops: List[Raindrop] = []
         self.spawn_timer = 0
         self.spawn_interval = 0.05  # Time between raindrop spawns
@@ -46,6 +49,7 @@ class RainManager:
         self.rainfall_location = random.uniform(
             -self.track_width / 2, self.track_width / 2
         )
+        self.score_multiplier = score_multiplier
 
     def update(self, dt: float):
         # Update spawn timer
@@ -79,6 +83,7 @@ class RainManager:
             xy_size=(0.5, 0.8),  # Size of raindrop
             color=[100, 100, 255],  # Blue color
             camera=self.camera,
+            score_multiplier=self.score_multiplier,
         )
         self.raindrops.append(new_drop)
 
@@ -143,7 +148,7 @@ class Rock(FacingWall):
 
 
 class Raindrop(FacingWall):
-    def __init__(self, *args, score_multiplier=1, **kwargs):
+    def __init__(self, *args, score_multiplier=0.01, **kwargs):
         super().__init__(*args, **kwargs)
         self.score_multiplier = score_multiplier
         if self.color is None:
@@ -205,10 +210,6 @@ class Raindrop(FacingWall):
 
         # Offset the player bounding box to fit the feets
         offset_player_bounding_box = player_bounding_box.copy()
-        offset_player_bounding_box.y += player_bounding_box.height * 0.5
-        offset_player_bounding_box.height *= 0.3
-        offset_player_bounding_box.x += player_bounding_box.width * 0.25
-        offset_player_bounding_box.width *= 0.5
         if screen:
             if self.visible:
                 pygame.draw.rect(screen, (255, 0, 0), self.bounding_box, 2)
@@ -289,13 +290,15 @@ def draw_gauge(screen, score, max_score, position, size, draw_text=True):
 
     # Draw the filled part of the gauge
     filled_width = width * min((score / max_score), 1)
-    pygame.draw.rect(screen, (255, 69, 0), (x, y, filled_width, height))
+    pygame.draw.rect(
+        screen, (30, 144, 255), (x, y, filled_width, height)
+    )  # Dodger Blue
     # Draw the gauge body
     pygame.draw.rect(screen, gauge_color, (x, y, width, height), 1)
     # Draw the current score text
     if draw_text:
         font = pygame.font.SysFont(None, 36)
-        score_text = font.render(f"{score}", True, (255, 255, 255))
+        score_text = font.render(f"{score:.1f}", True, (255, 255, 255))
         screen.blit(score_text, (x + width // 2 - 10, y + 2))
 
 
@@ -336,14 +339,18 @@ def launch_thirsty_lion(
     CROP_TOP = 2.0 * f_factor
     Z_SOURCE = 30.0 * f_factor
     # Initialize rain manager
-
-    rain_manager = RainManager(
-        track_width=TRACK_WIDTH, track_depth=Z_SOURCE, camera=camera
-    )
     WHEAT_COLOR = (245, 222, 179)
     score = 0
     moving_elements = []
     moving_tracks = []
+
+    rain_manager = RainManager(
+        track_width=TRACK_WIDTH,
+        track_depth=Z_SOURCE,
+        camera=camera,
+        moving_elements=moving_elements,
+        score_multiplier=0.1,
+    )
     # Track setting
     moving_tracks += [
         MovingTrack(
@@ -444,6 +451,11 @@ def launch_thirsty_lion(
             moving_track.move(dt=dt)
             moving_track.draw(screen)
         if player.enabled:
+            for rain_drop in rain_manager.raindrops:
+                if rain_drop.collide(
+                    player.bounding_box, screen=screen if debug else None
+                ):
+                    score += rain_drop.score_multiplier * 1
             for reward_elements in moving_elements:
                 for reward_element in reward_elements.elements:
                     if reward_element.collide(
@@ -543,7 +555,7 @@ def launch_thirsty_lion(
             player.enabled = False
         if winning_animation and not pause:
             player.z += 20.0 * dt
-            draw_text(screen, f"____ WIN ____ \n  SCORE = {score} ")
+            draw_text(screen, f"____ WIN ____ \n  SCORE = {score:.1f} ")
             if player.z > 100.0:
                 running = False
                 context = {WIN: True, SCORE: score}
