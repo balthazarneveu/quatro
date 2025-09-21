@@ -110,7 +110,11 @@ class Lion(ControlledPlayer):
         screen.blit(scaled_frame, rect)
 
         # Update bounding box (used for collision detection)
-        self.bounding_box = rect
+        # Rescale the bounding box so the width is half the size
+        bbox = rect.copy()
+        bbox.width = rect.width // 2
+        bbox.left += (rect.width - bbox.width) // 2  # center the bbox horizontally
+        self.bounding_box = bbox
 
         # DEBUG: Draw the bounding box (optional)
         # pygame.draw.rect(screen, (255, 0, 0), self.bounding_box, 2)
