@@ -63,12 +63,34 @@ class Lion(ControlledPlayer):
     def determine_direction(self) -> None:
         if not hasattr(self, "_last_x"):
             self._last_x = self.x
+            self._movement_history = []  # Store recent movement directions
+            self._history_size = 10  # Number of steps to consider
+            self._direction_threshold = 0.6  # Ratio threshold to change direction
 
         dx = self.x - self._last_x
-        if dx > 0:
-            self.facing_right = True
-        elif dx < 0:
-            self.facing_right = False
+        # Add current movement direction to history (1 for right, -1 for left, 0 for no movement)
+        direction = 1 if dx > 0 else (-1 if dx < 0 else 0)
+        self._movement_history.append(direction)
+
+        # Keep only the most recent steps
+        if len(self._movement_history) > self._history_size:
+            self._movement_history.pop(0)
+
+        # Calculate the ratio of right vs left movements
+        if self._movement_history:
+            right_ratio = sum(1 for d in self._movement_history if d > 0) / len(
+                self._movement_history
+            )
+            left_ratio = sum(1 for d in self._movement_history if d < 0) / len(
+                self._movement_history
+            )
+
+            # Change direction only if there's a strong trend
+            if right_ratio > self._direction_threshold:
+                self.facing_right = True
+            elif left_ratio > self._direction_threshold:
+                self.facing_right = False
+
         self._last_x = self.x
 
     def draw(self, screen: pygame.Surface, dt: float = 0) -> None:
