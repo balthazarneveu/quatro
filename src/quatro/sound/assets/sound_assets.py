@@ -23,6 +23,18 @@ SOUNDS = {
     "chill_music": {
         PATH: ASSET_FOLDER / "sounds" / "chill_music.mp3",
     },
+    "groovy_shake": {
+        PATH: ASSET_FOLDER / "sounds" / "groovy_shake.mp3",
+    },
+    "rock_hits_lion": {
+        PATH: ASSET_FOLDER / "sounds" / "rock_hits_lion.wav",
+    },
+    "rainfall": {
+        PATH: ASSET_FOLDER / "sounds" / "rainfall.wav",
+    },
+    "roars": {
+        PATH: ASSET_FOLDER / "sounds" / "lion_roars.wav",
+    },
 }
 
 if __name__ == "__main__":

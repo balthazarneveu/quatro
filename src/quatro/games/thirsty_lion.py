@@ -89,6 +89,7 @@ class RainManager:
         self.enabled = False
 
     def reset(self):
+        play_sound("rainfall")
         self.total_drops_spawned = 0
         self.enabled = True
 
@@ -484,6 +485,7 @@ def launch_thirsty_lion(
             num_elements=3,
             y=0.0 * CROP_TOP,
             z_source=Z_SOURCE,
+            z_far_away=Z_SOURCE,
             x_range=[-TRACK_WIDTH * 0.6, TRACK_WIDTH * 0.6],
             xy_size=[ROCK_SIZE * CROP_TOP, ROCK_SIZE * CROP_TOP],
             z_size=0.0,
@@ -514,7 +516,7 @@ def launch_thirsty_lion(
     #     player.x, player.body_bottom, player.z, shadow_size=5.0, camera=camera
     # )  # looks like  a shadow
     current_background = "jungle_volcano"
-    play_sound("chill_music", loop=1000)
+    play_sound("groovy_shake", loop=1000)
     if WEBCAM in controller:
         from quatro.control.webcam import Controller
 
@@ -548,9 +550,9 @@ def launch_thirsty_lion(
                         score += reward_element.score_multiplier * 1
                         if reward_element.score_multiplier < 0:
                             player.y = RESTART_HEIGHT
-                            play_sound("booing")
+                            play_sound("rock_hits_lion")
                         if reward_element.score_multiplier > 0:
-                            play_sound("beep")
+                            play_sound("rainfall")
                             for _reward_element in reward_elements.elements:
                                 if score >= 3 and score % 2 == 1:
                                     _reward_element.randomize_color()
@@ -632,6 +634,7 @@ def launch_thirsty_lion(
         # Win event
         # ----------------
         if score >= max_score:
+            play_sound("roars")
             winning_animation = True
             moving_elements = []
             for element in moving_tracks:

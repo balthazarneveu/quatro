@@ -90,6 +90,7 @@ class MovingElement(MovingStuff):
     def __init__(
         self,
         z_source=10.0,
+        z_far_away=None,
         x_range=[-1, 1],
         num_elements=10,
         speed=MOVING_TRACK_SPEED,
@@ -100,8 +101,10 @@ class MovingElement(MovingStuff):
         self.z_source = z_source
         self.xrange = x_range
         self.elements = deque()
+        if z_far_away is None:
+            z_far_away = z_source
         for i in range(num_elements):
-            z_value = z_source - (i / num_elements) * z_source
+            z_value = z_source - (i / num_elements) * z_far_away
             x_value = random.uniform(x_range[0], x_range[1])
             self.elements.append(element_type(x=x_value, z=z_value, **kwargs))
 
