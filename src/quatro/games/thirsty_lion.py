@@ -15,7 +15,6 @@ from quatro.system.window import init_screen
 from quatro.engine.planes import Floor, Wall, FacingWall
 from quatro.engine.endless_track import MovingTrack, MovingElement
 from quatro.engine.pinhole_camera import Camera
-from math import sin, radians
 from typing import List
 import random
 
@@ -28,6 +27,64 @@ MEDIUM = 1
 HARD = 2
 
 DEFAULT_GAME_CONFIG = {MAX_SCORE_WIN: 10, DIFFICULTY: EASY}
+
+
+class RainManager:
+    def __init__(
+        self,
+        track_width: float = 10.0,
+        track_depth: float = 100.0,
+        camera: Camera = None,
+    ):
+        self.track_width = track_width
+        self.track_depth = track_depth
+        self.camera = camera
+        self.raindrops: List[Raindrop] = []
+        self.spawn_timer = 0
+        self.spawn_interval = 0.05  # Time between raindrop spawns
+        self.fall_speed = 10.0  # Speed at which raindrops fall
+        self.rainfall_location = random.uniform(
+            -self.track_width / 2, self.track_width / 2
+        )
+
+    def update(self, dt: float):
+        # Update spawn timer
+        self.spawn_timer += dt
+        if self.spawn_timer >= self.spawn_interval:
+            self.spawn_timer = 0
+            self.spawn_raindrop()
+
+        # Update raindrop positions and remove ones that hit the ground
+        for drop in self.raindrops[:]:
+            drop.y -= self.fall_speed * dt
+            if drop.y <= 0:  # Ground level
+                self.raindrops.remove(drop)
+
+    def spawn_raindrop(self):
+        # Random position across track width
+
+        x = self.rainfall_location + random.uniform(
+            -self.track_width / 8, self.track_width / 8
+        )
+        # Start high above
+        y = 60.0  # Height above ground
+        # Random position along track depth
+        # z = random.uniform(0, self.track_depth)
+        # z = 0.2 * self.track_depth
+        z = 50
+        new_drop = Raindrop(
+            x=x,
+            y=y,
+            z=z,
+            xy_size=(0.5, 0.8),  # Size of raindrop
+            color=[100, 100, 255],  # Blue color
+            camera=self.camera,
+        )
+        self.raindrops.append(new_drop)
+
+    def draw(self, screen: pygame.Surface):
+        for drop in self.raindrops:
+            drop.draw(screen)
 
 
 def draw_text(screen: pygame.Surface, text: str):
@@ -85,7 +142,7 @@ class Rock(FacingWall):
         return collision
 
 
-class Carrot(FacingWall):
+class Raindrop(FacingWall):
     def __init__(self, *args, score_multiplier=1, **kwargs):
         super().__init__(*args, **kwargs)
         self.score_multiplier = score_multiplier
@@ -95,42 +152,51 @@ class Carrot(FacingWall):
             self.standardize_color()
 
     def randomize_color(self):
-        self.color = [random.randint(0, 255) for _ in range(3)]
-        self.leaf_color = [random.randint(0, 255) for _ in range(3)]
-        self.leaf_color = [self.leaf_color] * 2
+        # Create shades of blue for raindrops
+        blue_base = random.randint(200, 255)
+        self.color = [100, 100, blue_base]  # Blue tint with some white
+        self.highlight_color = [220, 220, 255]  # Light reflection
 
     def standardize_color(self):
-        self.color = [255, 165, 0]
-        self.leaf_color = [[0, 100, 0], [0, 100, 0]]  # dark green color
+        self.color = [100, 100, 255]  # Standard blue for raindrops
+        self.highlight_color = [220, 220, 255]  # Standard light reflection
 
     def get_coordinates(self):
         pts_3d = super().get_coordinates()
         top = (pts_3d[0] + pts_3d[1]) / 2.0
-        br, bl = pts_3d[2], pts_3d[3]
-        pts_3d_triangle = pts_3d[:2] + [(br + bl) / 2.0]
+        bottom = (pts_3d[2] + pts_3d[3]) / 2.0
+        center = (top + bottom) / 2.0
+
+        # Create main teardrop shape
+        drop_height = self.xy_size[1]
+        drop_width = self.xy_size[0] * 0.6
+
         geometry = [
             {
-                "type": "poly",
-                "content": {"points": pts_3d_triangle, "color": self.color},
-            }
-        ]
-        for side, angle in enumerate([-20, 20]):
-            leaf_size = self.xy_size[1] * 0.7
-            leaf = {
                 "type": "ellipse",
                 "content": {
-                    "color": self.leaf_color[side],  # dark green color
-                    "center": top
-                    + pygame.Vector3(
-                        sin(radians(-angle)) * leaf_size / 2.0, leaf_size / 2.0, 0
-                    ),
-                    "size_x": leaf_size * 0.2,
-                    "size_y": leaf_size,
-                    "angle": angle,
+                    "color": self.color,
+                    "center": center,
+                    "size_x": drop_width,
+                    "size_y": drop_height,
+                    "angle": 0,
                     "width": 0,
                 },
-            }
-            geometry.append(leaf)
+            },
+            # Add highlight reflection (smaller ellipse in upper right)
+            {
+                "type": "ellipse",
+                "content": {
+                    "color": self.highlight_color,
+                    "center": center
+                    + pygame.Vector3(drop_width * 0.2, -drop_height * 0.2, 0),
+                    "size_x": drop_width * 0.3,
+                    "size_y": drop_height * 0.3,
+                    "angle": -20,
+                    "width": 0,
+                },
+            },
+        ]
         return geometry
 
     def collide(self, player_bounding_box: pygame.Rect, screen: pygame.Surface = None):
@@ -269,6 +335,11 @@ def launch_thirsty_lion(
     TRACK_WIDTH = 2.6 * f_factor
     CROP_TOP = 2.0 * f_factor
     Z_SOURCE = 30.0 * f_factor
+    # Initialize rain manager
+
+    rain_manager = RainManager(
+        track_width=TRACK_WIDTH, track_depth=Z_SOURCE, camera=camera
+    )
     WHEAT_COLOR = (245, 222, 179)
     score = 0
     moving_elements = []
@@ -315,16 +386,17 @@ def launch_thirsty_lion(
                 camera=camera,
             )
         )
-    # Moving elements
 
+    # Moving elements
+    ROCK_SIZE = 0.5
     moving_elements.append(
         MovingElement(
             speed=speed,
-            num_elements=10,
+            num_elements=3,
             y=0.0 * CROP_TOP,
             z_source=Z_SOURCE,
             x_range=[-TRACK_WIDTH * 0.6, TRACK_WIDTH * 0.6],
-            xy_size=[0.3 * CROP_TOP, 0.3 * CROP_TOP],
+            xy_size=[ROCK_SIZE * CROP_TOP, ROCK_SIZE * CROP_TOP],
             z_size=0.0,
             element_type=Rock,
             color=(100, 100, 100),  # gray color
@@ -346,10 +418,9 @@ def launch_thirsty_lion(
                 camera=camera,
             )
         )
-    RESTART_HEIGHT = 10.
+    RESTART_HEIGHT = 10.0
     player_pos = 0.0, RESTART_HEIGHT, 50.0
-    # player = Bunny(*player_pos, size=5.0, animation_speed=10, camera=camera)
-    player = Lion(*player_pos, size=3., camera=camera)
+    player = Lion(*player_pos, size=3.0, camera=camera)
     # shadow = Shadow(
     #     player.x, player.body_bottom, player.z, shadow_size=5.0, camera=camera
     # )  # looks like  a shadow
@@ -476,6 +547,12 @@ def launch_thirsty_lion(
             if player.z > 100.0:
                 running = False
                 context = {WIN: True, SCORE: score}
+
+        # Update and draw rain
+        if not pause:
+            rain_manager.update(dt)
+        rain_manager.draw(screen)
+
         pygame.display.flip()
         dt = clock.tick(60) / 1000
     stop_all_sounds()
