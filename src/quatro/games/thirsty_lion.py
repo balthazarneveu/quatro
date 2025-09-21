@@ -9,7 +9,7 @@ from quatro.sound.sound import (
 )
 from quatro.system.input_handler import KeyDebouncer
 
-from quatro.graphics.animation.bunny import Bunny, Shadow
+from quatro.graphics.animation.lion import Lion
 from quatro.system.quit import handle_quit
 from quatro.system.window import init_screen
 from quatro.engine.planes import Floor, Wall, FacingWall
@@ -235,7 +235,7 @@ def draw_gauge(screen, score, max_score, position, size, draw_text=True):
 
 def launch_thirsty_lion(
     resolution=None,
-    debug: bool = True,
+    debug: bool = False,
     audio: bool = True,
     game_config: dict = DEFAULT_GAME_CONFIG,
     controller: List[str] = [KEYBOARD],
@@ -348,10 +348,11 @@ def launch_thirsty_lion(
         )
     RESTART_HEIGHT = 40.0
     player_pos = 0.0, RESTART_HEIGHT, 50.0
-    player = Bunny(*player_pos, size=5.0, animation_speed=10, camera=camera)
-    shadow = Shadow(
-        player.x, player.body_bottom, player.z, shadow_size=5.0, camera=camera
-    )  # looks like  a shadow
+    # player = Bunny(*player_pos, size=5.0, animation_speed=10, camera=camera)
+    player = Lion(*player_pos, size=0.2, camera=camera)
+    # shadow = Shadow(
+    #     player.x, player.body_bottom, player.z, shadow_size=5.0, camera=camera
+    # )  # looks like  a shadow
     current_background = "night_wheat_field"
     play_sound("chill_music", loop=1000)
     if WEBCAM in controller:
@@ -390,10 +391,10 @@ def launch_thirsty_lion(
                                     _reward_element.standardize_color()
 
         # Draw black holes
-        shadow.x = player.x
-        shadow.y = 0.0
-        shadow.z = player.z
-        shadow.draw(screen)
+        # shadow.x = player.x
+        # shadow.y = 0.0
+        # shadow.z = player.z
+        # shadow.draw(screen)
         player.draw(screen, dt=dt)
         if debug:
             pygame.draw.rect(screen, (255, 0, 0), player.bounding_box, 1)
