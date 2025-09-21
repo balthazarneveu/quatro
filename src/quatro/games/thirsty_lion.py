@@ -384,13 +384,12 @@ def launch_thirsty_lion(
     pause = False
     dt = 0
     speed = 2.0 * f_factor
-    track_speed = 0.0
-    # speed = 0.
-    TRACK_WIDTH = 2.6 * f_factor
+
+    TRACK_WIDTH = 2.6 * f_factor * 0.5
     CROP_TOP = 2.0 * f_factor
-    Z_SOURCE = 30.0 * f_factor
+    Z_SOURCE = 30.0 * f_factor * 0.25
     # Initialize rain manager
-    WHEAT_COLOR = (245, 222, 179)
+
     score = 0
     moving_elements = []
     moving_tracks = []
@@ -402,51 +401,55 @@ def launch_thirsty_lion(
         moving_elements=moving_elements,
         score_multiplier=0.1,
     )
-    # Track setting
-    moving_tracks += [
-        MovingTrack(
-            speed=track_speed,
-            num_elements=50,
-            z_source=Z_SOURCE * 1.5,
-            xy_size=TRACK_WIDTH * 2,
-            element_type=Floor,
-            camera=camera,
-        )
-    ]
-
-    for sign in [-1, 1]:
-        moving_tracks.append(
-            MovingTrack(
-                speed=track_speed,
-                num_elements=70,
-                z_source=Z_SOURCE,
-                x_source=sign * TRACK_WIDTH,
-                randomness_amplitude=0,
-                element_type=Wall,
-                angle=sign * 5.0,
-                xy_size=CROP_TOP,
-                color=WHEAT_COLOR,
-                camera=camera,
-            )
-        )
-    for sign in [-1, 1]:
+    if False:
+        track_speed = 0.0
+        speed = 0.0
+        WHEAT_COLOR = (245, 222, 179)
         CROP_TOP_SIZE = 200.0
-        moving_tracks.append(
+        # Track setting
+        moving_tracks += [
             MovingTrack(
                 speed=track_speed,
                 num_elements=50,
-                y=CROP_TOP,
-                z_source=Z_SOURCE,
-                x_source=sign * (TRACK_WIDTH + CROP_TOP_SIZE / 2),
-                xy_size=CROP_TOP_SIZE,
+                z_source=Z_SOURCE * 1.5,
+                xy_size=TRACK_WIDTH * 2,
                 element_type=Floor,
-                color=WHEAT_COLOR,
                 camera=camera,
             )
-        )
+        ]
+
+        for sign in [-1, 1]:
+            moving_tracks.append(
+                MovingTrack(
+                    speed=track_speed,
+                    num_elements=70,
+                    z_source=Z_SOURCE,
+                    x_source=sign * TRACK_WIDTH,
+                    randomness_amplitude=0,
+                    element_type=Wall,
+                    angle=sign * 5.0,
+                    xy_size=CROP_TOP,
+                    color=WHEAT_COLOR,
+                    camera=camera,
+                )
+            )
+        for sign in [-1, 1]:
+            moving_tracks.append(
+                MovingTrack(
+                    speed=track_speed,
+                    num_elements=50,
+                    y=CROP_TOP,
+                    z_source=Z_SOURCE,
+                    x_source=sign * (TRACK_WIDTH + CROP_TOP_SIZE / 2),
+                    xy_size=CROP_TOP_SIZE,
+                    element_type=Floor,
+                    color=WHEAT_COLOR,
+                    camera=camera,
+                )
+            )
 
     # Moving elements
-    ROCK_SIZE = 0.5
+    ROCK_SIZE = 0.5 * 0.7
     moving_elements.append(
         MovingElement(
             speed=speed,
@@ -482,7 +485,7 @@ def launch_thirsty_lion(
     # shadow = Shadow(
     #     player.x, player.body_bottom, player.z, shadow_size=5.0, camera=camera
     # )  # looks like  a shadow
-    current_background = "night_wheat_field"
+    current_background = "jungle_volcano"
     play_sound("chill_music", loop=1000)
     if WEBCAM in controller:
         from quatro.control.webcam import Controller
@@ -501,11 +504,13 @@ def launch_thirsty_lion(
         for moving_track in moving_tracks + moving_elements:
             moving_track.move(dt=dt)
             moving_track.draw(screen)
+        player.set_action("idle")
         if player.enabled:
             for rain_drop in rain_manager.raindrops:
                 if rain_drop.collide(
                     player.bounding_box, screen=screen if debug else None
                 ):
+                    # player.set_action("drinking")
                     score += rain_drop.score_multiplier * 1
             for reward_elements in moving_elements:
                 for reward_element in reward_elements.elements:
