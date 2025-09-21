@@ -39,22 +39,37 @@ class RainManager:
         score_multiplier: float = 0.01,
     ):
         self.track_width = track_width
+        self.rainfall_width = self.track_width / 8.0 * 2.0
         self.track_depth = track_depth
         self.camera = camera
         self.moving_elements = moving_elements
         self.raindrops: List[Raindrop] = []
         self.spawn_timer = 0
         self.spawn_interval = 0.05  # Time between raindrop spawns
-        self.fall_speed = 10.0  # Speed at which raindrops fall
+        self.fall_speed = 12.0  # Speed at which raindrops fall
+        self.total_drops_spawned = 0
+        self.sample_rainfall_location()
+        self.score_multiplier = score_multiplier
+        self.enabled = True
+
+    def sample_rainfall_location(self):
         self.rainfall_location = random.uniform(
             -self.track_width / 2, self.track_width / 2
         )
-        self.score_multiplier = score_multiplier
 
     def update(self, dt: float):
+        if self.total_drops_spawned > 50:  # Limit the number of active raindrops
+            self.disable()
+
+        if (
+            not self.enabled and len(self.raindrops) < 40
+        ):  # All raindrops have fallen -> reset
+            self.sample_rainfall_location()
+            self.reset()
+
         # Update spawn timer
         self.spawn_timer += dt
-        if self.spawn_timer >= self.spawn_interval:
+        if self.enabled and self.spawn_timer >= self.spawn_interval:
             self.spawn_timer = 0
             self.spawn_raindrop()
 
@@ -64,18 +79,25 @@ class RainManager:
             if drop.y <= 0:  # Ground level
                 self.raindrops.remove(drop)
 
+    def disable(self):
+        self.enabled = False
+
+    def reset(self):
+        self.total_drops_spawned = 0
+        self.enabled = True
+
     def spawn_raindrop(self):
         # Random position across track width
-
+        self.total_drops_spawned += 1
         x = self.rainfall_location + random.uniform(
-            -self.track_width / 8, self.track_width / 8
+            -self.rainfall_width, self.rainfall_width
         )
         # Start high above
-        y = 60.0  # Height above ground
+        y = 50.0  # Height above ground
         # Random position along track depth
         # z = random.uniform(0, self.track_depth)
         # z = 0.2 * self.track_depth
-        z = 50
+        z = 50 + random.uniform(-15, 0)
         new_drop = Raindrop(
             x=x,
             y=y,
@@ -325,7 +347,7 @@ class Hole(Floor):
         return collision
 
 
-def draw_gauge(screen, score, max_score, position, size, draw_text=True):
+def draw_gauge(screen, score, max_score, position, size, draw_text=False):
     """Draw a gauge bar.
 
     Args:
@@ -537,7 +559,8 @@ def launch_thirsty_lion(
         player.draw(screen, dt=dt)
         if debug:
             pygame.draw.rect(screen, (255, 0, 0), player.bounding_box, 1)
-
+        if score < 0:
+            score = 0
         draw_gauge(screen, score, max_score, position=(10, 10), size=(200, 30))
 
         # Game control update logic
