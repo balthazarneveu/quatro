@@ -108,21 +108,72 @@ class Rock(FacingWall):
     def get_coordinates(self):
         pts_3d = super().get_coordinates()
         top = (pts_3d[0] + pts_3d[1]) / 2.0
-        # br, bl = pts_3d[2], pts_3d[3]
-        # pts_3d_triangle = pts_3d[:2] + [(br + bl) / 2.0]
+
+        # Create oscillations based on z position
+        import math
+
+        phase = self.z * 0.2 * 4.0
+        # Detail dot oscillation
+        detail_oscillation = math.sin(phase) * self.xy_size[1] * 0.5 * 0.95
+
+        # Create bumpy road effect with multiple frequencies and phases
+        # Main bumps
+        bump_y = (
+            math.sin(self.z * 0.3) * self.xy_size[1] * 0.15  # Medium frequency
+            + math.sin(self.z * 1.2 + 0.5) * self.xy_size[1] * 0.08  # High frequency
+            + math.sin(self.z * 0.1 - 0.3) * self.xy_size[1] * 0.1  # Low frequency
+        ) * 0.1
+
+        bump_x = (
+            math.cos(self.z * 0.4) * self.xy_size[0] * 0.08  # Medium frequency
+            + math.cos(self.z * 0.9 + 0.7) * self.xy_size[0] * 0.05  # Higher frequency
+            + math.sin(self.z * 0.15 + 1.1) * self.xy_size[0] * 0.04  # Low frequency
+        ) * 0.1
+
+        # Add some extra jitter based on position
+        jitter_x = math.sin(self.z * 2.5) * self.xy_size[0] * 0.02
+        jitter_y = math.cos(self.z * 2.8) * self.xy_size[1] * 0.02
+
+        # Apply the bumpy movement to the rock position
+        bumpy_pos = pygame.Vector3(
+            top.x + bump_x + jitter_x, top.y + bump_y + jitter_y, top.z
+        )
+
         geometry = [
             {
                 "type": "ellipse",
                 "content": {
                     "color": self.color,  # gray color for the rock
-                    "center": top,
-                    "size_x": self.xy_size[0] * 0.7,
-                    "size_y": self.xy_size[1] * 0.7,
+                    "center": bumpy_pos,
+                    "size_x": self.xy_size[0],
+                    "size_y": self.xy_size[1],
                     "angle": 0,
                     "width": 0,
                 },
             }
         ]
+
+        # Only add the detail when it's "visible" (in front of the rock)
+        if math.cos(phase) > 0:
+            # Apply the same bumpy movement to the detail
+            detail_pos = pygame.Vector3(
+                bumpy_pos.x, bumpy_pos.y + detail_oscillation, bumpy_pos.z
+            )
+            geometry.append(
+                {
+                    "type": "ellipse",
+                    "content": {
+                        "color": [
+                            max(c - 30, 0) for c in self.color
+                        ],  # darker shade for detail
+                        "center": detail_pos,
+                        "size_x": self.xy_size[0] * 0.1,
+                        "size_y": self.xy_size[1] * 0.1,
+                        "angle": 0,
+                        "width": 0,
+                    },
+                }
+            )
         return geometry
 
     def collide(self, player_bounding_box: pygame.Rect, screen: pygame.Surface = None):
