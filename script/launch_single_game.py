@@ -1,6 +1,7 @@
 from quatro.control.properties import KEYBOARD, WEBCAM
 from quatro.games.flappy_butterfly import launch_flappy_butterfly
 from quatro.games.running_bunny import launch_running_bunny
+from quatro.games.thirsty_lion import launch_thirsty_lion
 from quatro.system.quit import QUIT
 import pygame
 import argparse
@@ -9,6 +10,7 @@ import sys
 GAMES_LIST = {
     "flappy": launch_flappy_butterfly,
     "bunny": launch_running_bunny,
+    "lion": launch_thirsty_lion,
 }
 GAMES_NAMES = list(GAMES_LIST.keys())
 
