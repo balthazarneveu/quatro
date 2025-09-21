@@ -44,10 +44,10 @@ class RainManager:
         self.camera = camera
         self.moving_elements = moving_elements
         self.raindrops: List[Raindrop] = []
+        self.delay = 4.0
         self.spawn_timer = 0
         self.spawn_interval = 0.05  # Time between raindrop spawns
         self.fall_speed = 12.0  # Speed at which raindrops fall
-        self.total_drops_spawned = 0
         self.sample_rainfall_location()
         self.score_multiplier = score_multiplier
         self.enabled = True
@@ -58,6 +58,12 @@ class RainManager:
         )
 
     def update(self, dt: float):
+        self.spawn_timer += dt
+        if self.delay is not None:
+            if self.spawn_timer >= self.delay:
+                self.reset()
+                self.delay = None
+            return
         if self.total_drops_spawned > 50:  # Limit the number of active raindrops
             self.disable()
 
@@ -68,7 +74,7 @@ class RainManager:
             self.reset()
 
         # Update spawn timer
-        self.spawn_timer += dt
+
         if self.enabled and self.spawn_timer >= self.spawn_interval:
             self.spawn_timer = 0
             self.spawn_raindrop()
