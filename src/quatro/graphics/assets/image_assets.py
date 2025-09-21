@@ -29,6 +29,16 @@ BACKGROUNDS = {
         DESCRIPTION: "A mystical wheat field at night in an artistic style suitable for a video game. The scene features less saturated colors for a subdued and mysterious look. A wide pathway runs prominently through the middle of the field, inviting exploration. The golden wheat, now muted in tone, sways gently under the faint glow of the starry night sky, which is expansive and moonless. The atmosphere is darker and more mysterious, with distant silhouettes of trees and hills adding depth to the scene. The style remains immersive and detailed, ideal for a fantasy or exploration video game.",  # noqa
         SIZE: (1792, 1024),
     },
+    "jungle": {
+        PATH: BACKGROUND_ASSETS / "jungle.png",
+        DESCRIPTION: "A vibrant jungle scene with lush greenery, exotic plants, and dappled sunlight filtering through the canopy.",
+        SIZE: (1948, 832),
+    },
+    "jungle_volcano": {
+        PATH: BACKGROUND_ASSETS / "jungle_volcano.png",
+        DESCRIPTION: "A vibrant jungle scene with a volcano in the background, surrounded by lush greenery and exotic plants.",
+        SIZE: (1948, 832),
+    },
 }
 
 if __name__ == "__main__":
