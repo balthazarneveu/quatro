@@ -20,6 +20,7 @@ class Lion(ControlledPlayer):
         self.size = size
         self.camera = camera
         self.enabled = True
+        self.can_collide = True
         self.bounding_box = None
 
         # Load the sprite sheet

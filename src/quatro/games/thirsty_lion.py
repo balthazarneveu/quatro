@@ -509,7 +509,7 @@ def launch_thirsty_lion(
                 camera=camera,
             )
         )
-    RESTART_HEIGHT = 10.0
+    RESTART_HEIGHT = 40.0
     player_pos = 0.0, RESTART_HEIGHT, 50.0
     player = Lion(*player_pos, size=3.0, camera=camera)
     # shadow = Shadow(
@@ -534,8 +534,8 @@ def launch_thirsty_lion(
         for moving_track in moving_tracks + moving_elements:
             moving_track.move(dt=dt)
             moving_track.draw(screen)
-        player.set_action("idle")
-        if player.enabled:
+        # player.set_action("idle")
+        if hasattr(player, "can_collide") and player.can_collide:
             for rain_drop in rain_manager.raindrops:
                 if rain_drop.collide(
                     player.bounding_box, screen=screen if debug else None
@@ -551,6 +551,7 @@ def launch_thirsty_lion(
                         if reward_element.score_multiplier < 0:
                             player.y = RESTART_HEIGHT
                             play_sound("rock_hits_lion")
+                            player.set_action("dizzy")
                         if reward_element.score_multiplier > 0:
                             play_sound("rainfall")
                             for _reward_element in reward_elements.elements:
@@ -585,13 +586,21 @@ def launch_thirsty_lion(
         if player.x > side_limit:
             player.x = side_limit
         if player.y > ground_level_player:
-            player.enabled = False
-            player.global_intensity = 0.0
-            player.y -= 50.0 * dt
+
+            player.can_collide = (
+                False  # Use this for gameplay mechanics instead of enabled
+            )
+            player.global_intensity = 1.0  # Keep the lion visible
+            # Smooth the landing by reducing speed as the lion approaches the ground
+            landing_speed = max(
+                10.0, 80.0 * (player.y - ground_level_player) / RESTART_HEIGHT
+            )
+            player.y -= landing_speed * dt
             if player.y < ground_level_player:
                 player.y = ground_level_player
                 player.global_intensity = 1.0
-                player.enabled = True
+                player.can_collide = True
+                player.set_action("idle")
         MAX_YAW = 30
         # Keyboard control
         # ----------------
