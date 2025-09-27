@@ -1,4 +1,5 @@
 import pygame
+import math
 from quatro.control.properties import KEYBOARD, WEBCAM
 from quatro.graphics.background import draw_background_from_asset
 from quatro.graphics.assets.image_assets import SPRITES, PATH
@@ -329,6 +330,25 @@ class SmashEffect:
         else:
             self.target_height = int(self.target_width / self.aspect_ratio)
 
+        # Setup decorative stars
+        self.num_stars = 6
+        self.stars = []
+        self.star_radius = (
+            min(self.target_width, self.target_height) * 0.15
+        )  # Orbit radius
+        self.star_size = min(self.target_width, self.target_height) * 0.05  # Star size
+        self.star_spin_speed = 0.8  # Rotations per second (slowed down)
+        for i in range(self.num_stars):
+            angle = (i / self.num_stars) * 2 * math.pi
+            star_points = []
+            for j in range(10):
+                point_angle = (j * 2 * math.pi / 10) + math.pi / 2  # Start from top
+                radius = self.star_size if j % 2 == 0 else self.star_size * 0.4
+                x = math.cos(point_angle) * radius
+                y = math.sin(point_angle) * radius
+                star_points.append((x, y))
+            self.stars.append({"base_angle": angle, "points": star_points})
+
         # Create target sized sprite
         self.sprite = pygame.transform.scale(
             self.original_sprite, (self.target_width, self.target_height)
@@ -338,6 +358,63 @@ class SmashEffect:
         self.center_x = screen_width // 2
         self.center_y = screen_height // 2
         self.initial_y = (screen_height - self.target_height) // 2
+
+    def _generate_star_points(self, size):
+        points = []
+        for i in range(10):
+            angle = (i * 2 * math.pi / 10) + math.pi / 2  # Start from top
+            radius = size if i % 2 == 0 else size * 0.4
+            x = math.cos(angle) * radius
+            y = math.sin(angle) * radius
+            points.append((x, y))
+        return points
+
+    def _draw_stars(self, screen, center_x, center_y, scale=1.0):
+        # Draw spinning stars in an elliptical orbit above the sprite
+        sprite_top = center_y - (
+            self.target_height * scale * 0.4
+        )  # Position above the sprite
+
+        for i in range(6):  # Draw 6 stars
+            # Calculate star position on elliptical orbit
+            base_angle = (i / 6) * 2 * math.pi
+            angle = base_angle + self.timer * 0.8 * 2 * math.pi  # Slower rotation
+
+            # Elliptical orbit (wider than it is tall)
+            horizontal_radius = (
+                min(self.target_width, self.target_height) * 0.25 * scale
+            )
+            vertical_radius = horizontal_radius * 0.4  # Flattened for perspective
+
+            # Calculate position on ellipse
+            star_x = center_x + math.cos(angle) * horizontal_radius
+            star_y = sprite_top + math.sin(angle) * vertical_radius
+
+            # Adjust star size based on position (smaller in back, larger in front)
+            base_size = min(self.target_width, self.target_height) * 0.05 * scale
+            size_scale = 0.7 + (
+                math.sin(angle) * 0.3
+            )  # Stars are smaller when "behind"
+            star_size = base_size * size_scale
+
+            # Generate and draw star
+            star_points = []
+            for j in range(10):
+                point_angle = (j * 2 * math.pi / 10) + math.pi / 2
+                radius = star_size if j % 2 == 0 else star_size * 0.4
+                x = star_x + math.cos(point_angle) * radius
+                y = star_y + math.sin(point_angle) * radius
+                star_points.append((x, y))
+
+            if len(star_points) >= 3:
+                # Adjust star brightness based on position (dimmer in back)
+                brightness = int(200 + (55 * math.sin(angle)))  # Range from 200-255
+                star_color = (
+                    brightness,
+                    brightness,
+                    0,
+                )  # Yellow with varying brightness
+                pygame.draw.polygon(screen, star_color, star_points)
 
     def start(self):
         self.active = True
@@ -377,6 +454,27 @@ class SmashEffect:
         else:
             self.active = False
 
+    def _init_stars(self):
+        if not hasattr(self, "stars"):
+            # Setup decorative stars
+            self.num_stars = 6
+            self.stars = []
+            self.star_radius = (
+                min(self.target_width, self.target_height) * 0.15
+            )  # Orbit radius
+            self.star_size = (
+                min(self.target_width, self.target_height) * 0.05
+            )  # Star size
+            self.star_spin_speed = 2.0  # Rotations per second
+            for i in range(self.num_stars):
+                angle = (i / self.num_stars) * 2 * math.pi
+                self.stars.append(
+                    {
+                        "base_angle": angle,
+                        "points": self._generate_star_points(self.star_size),
+                    }
+                )
+
     def draw(self, screen):
         if not self.active:
             return
@@ -405,6 +503,9 @@ class SmashEffect:
         if self.timer <= self.stick_duration + self.zoom_duration:
             # Full opacity during zoom and stick phase
             alpha = 255
+            # Draw stars during stick phase (but not during initial zoom)
+            if self.timer >= self.zoom_duration:
+                self._draw_stars(screen, self.center_x, y + current_height // 2, scale)
         else:
             # Fade out during slide phase
             slide_progress = (
@@ -416,6 +517,13 @@ class SmashEffect:
 
         current_sprite.set_alpha(alpha)
         screen.blit(current_sprite, (int(x), int(y)))
+
+        # Draw stars throughout the effect until fading starts
+        if (
+            self.timer >= self.zoom_duration
+            and self.timer <= self.stick_duration + self.zoom_duration
+        ):
+            self._draw_stars(screen, self.center_x, y + current_height // 2, scale)
 
 
 class Hole(Floor):
