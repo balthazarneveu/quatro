@@ -648,10 +648,11 @@ def launch_thirsty_lion(
             moving_elements = []
             for element in moving_tracks:
                 element.speed = 0.0
+                element.disable()
 
-            player.enabled = False
+            player.can_collide = False  # Disable collisions but keep visible
         if winning_animation and not pause:
-            player.z += 20.0 * dt
+            player.z += 10.0 * dt
             draw_text(screen, f"____ WIN ____ \n  SCORE = {score:.1f} ")
             if player.z > 100.0:
                 running = False
