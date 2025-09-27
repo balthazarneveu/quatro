@@ -5,6 +5,7 @@ assert ASSET_FOLDER.exists(), f"Asset folder not found: {ASSET_FOLDER}"
 PATH = "path"
 DESCRIPTION = "description"
 BACKGROUND_ASSETS = ASSET_FOLDER / "backgrounds"
+SPRITE_ASSETS = ASSET_FOLDER / "sprites"
 SIZE = "size"
 BACKGROUNDS = {
     "sunset_field": {
@@ -41,7 +42,16 @@ BACKGROUNDS = {
     },
 }
 
+SPRITES = {
+    "lion_smash": {
+        PATH: SPRITE_ASSETS / "lion_smashes_screen.png",
+        DESCRIPTION: "A sprite of a lion smashing through the screen",
+        SIZE: (512, 512),
+    },
+}
+
 if __name__ == "__main__":
     assert all(
         [p[PATH].exists() for p in BACKGROUNDS.values()]
     ), "Background assets not found"
+    assert all([p[PATH].exists() for p in SPRITES.values()]), "Sprite assets not found"

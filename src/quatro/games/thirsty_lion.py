@@ -1,6 +1,7 @@
 import pygame
 from quatro.control.properties import KEYBOARD, WEBCAM
 from quatro.graphics.background import draw_background_from_asset
+from quatro.graphics.assets.image_assets import SPRITES, PATH
 from quatro.sound.sound import (
     play_sound,
     toggle_audio,
@@ -302,6 +303,121 @@ class Raindrop(FacingWall):
         return collision
 
 
+class SmashEffect:
+    def __init__(self, screen_width, screen_height):
+        self.screen_width = screen_width
+        self.screen_height = screen_height
+        self.active = False
+        self.zoom_duration = 0.15  # Duration of initial zoom
+        self.stick_duration = 1.0  # Duration to stay in place
+        self.slide_duration = 1.5  # Duration of sliding down
+        self.total_duration = (
+            self.zoom_duration + self.stick_duration + self.slide_duration
+        )
+        self.timer = 0
+        self.sprite_path = SPRITES["lion_smash"][PATH]
+        self.original_sprite = pygame.image.load(str(self.sprite_path))
+
+        # Calculate target size
+        scale_factor = 0.8
+        self.target_width = int(screen_width * scale_factor)
+        self.target_height = int(screen_height * scale_factor)
+        orig_width, orig_height = self.original_sprite.get_size()
+        self.aspect_ratio = orig_width / orig_height
+        if self.target_width / self.target_height > self.aspect_ratio:
+            self.target_width = int(self.target_height * self.aspect_ratio)
+        else:
+            self.target_height = int(self.target_width / self.aspect_ratio)
+
+        # Create target sized sprite
+        self.sprite = pygame.transform.scale(
+            self.original_sprite, (self.target_width, self.target_height)
+        )
+
+        # Center position
+        self.center_x = screen_width // 2
+        self.center_y = screen_height // 2
+        self.initial_y = (screen_height - self.target_height) // 2
+
+    def start(self):
+        self.active = True
+        self.timer = 0
+        self.y = self.initial_y
+
+    def is_finished(self):
+        return not self.active or self.timer >= self.total_duration
+
+    def get_current_scale(self):
+        if self.timer <= self.zoom_duration:
+            # Start from 10% size and zoom to full size
+            progress = self.timer / self.zoom_duration
+            # Use ease-out quad for smooth deceleration
+            progress = -(progress * (progress - 2))
+            return 0.1 + (1.0 - 0.1) * progress
+        return 1.0
+
+    def update(self, dt):
+        if not self.active:
+            return
+
+        self.timer += dt
+
+        # First phase: zoom and stick
+        if self.timer <= self.stick_duration + self.zoom_duration:
+            return
+
+        # Second phase: slide down
+        slide_time = self.timer - (self.stick_duration + self.zoom_duration)
+        if slide_time < self.slide_duration:
+            # Accelerating slide using quadratic easing
+            progress = slide_time / self.slide_duration
+            slide_factor = progress * progress  # Quadratic easing
+            total_slide = self.screen_height - self.initial_y
+            self.y = self.initial_y + (total_slide * slide_factor)
+        else:
+            self.active = False
+
+    def draw(self, screen):
+        if not self.active:
+            return
+
+        # Get current scale for zoom effect
+        scale = self.get_current_scale()
+        current_width = int(self.target_width * scale)
+        current_height = int(self.target_height * scale)
+
+        # Scale sprite to current size
+        if scale != 1.0:
+            current_sprite = pygame.transform.scale(
+                self.sprite, (current_width, current_height)
+            )
+        else:
+            current_sprite = self.sprite
+
+        # Calculate position to center the sprite
+        x = self.center_x - current_width // 2
+        y = self.center_y - current_height // 2
+
+        if self.timer > self.zoom_duration:
+            y = self.y  # Use sliding y position after zoom
+
+        # Calculate opacity
+        if self.timer <= self.stick_duration + self.zoom_duration:
+            # Full opacity during zoom and stick phase
+            alpha = 255
+        else:
+            # Fade out during slide phase
+            slide_progress = (
+                self.timer - (self.stick_duration + self.zoom_duration)
+            ) / self.slide_duration
+            alpha = int(
+                255 * (1 - slide_progress * 0.7)
+            )  # Keep some visibility while sliding
+
+        current_sprite.set_alpha(alpha)
+        screen.blit(current_sprite, (int(x), int(y)))
+
+
 class Hole(Floor):
     def __init__(self, *args, score_multiplier=-1, **kwargs):
         super().__init__(*args, **kwargs)
@@ -417,11 +533,11 @@ def launch_thirsty_lion(
     TRACK_WIDTH = 2.6 * f_factor * 0.5
     CROP_TOP = 2.0 * f_factor
     Z_SOURCE = 30.0 * f_factor * 0.25
-    # Initialize rain manager
-
+    # Initialize managers and effects
     score = 0
     moving_elements = []
     moving_tracks = []
+    smash_effect = SmashEffect(w, h)
 
     rain_manager = RainManager(
         track_width=TRACK_WIDTH,
@@ -512,6 +628,10 @@ def launch_thirsty_lion(
     RESTART_HEIGHT = 40.0
     player_pos = 0.0, RESTART_HEIGHT, 50.0
     player = Lion(*player_pos, size=3.0, camera=camera)
+    player.hit_timer = 0  # Timer for hit state
+    player.is_hit = False  # Whether the lion is in hit state
+    player.hit_stick_duration = 0.2  # How long to stick in place after hit
+    player.hit_fall_speed = 20.0  # Base fall speed after being hit
     # shadow = Shadow(
     #     player.x, player.body_bottom, player.z, shadow_size=5.0, camera=camera
     # )  # looks like  a shadow
@@ -552,6 +672,10 @@ def launch_thirsty_lion(
                             player.y = RESTART_HEIGHT
                             play_sound("rock_hits_lion")
                             player.set_action("dizzy")
+                            smash_effect.start()  # Start the smash effect animation
+                            player.is_hit = True  # Enter hit state
+                            player.hit_timer = 0  # Reset hit timer
+                            player.enabled = False  # Hide the lion
                         if reward_element.score_multiplier > 0:
                             play_sound("rainfall")
                             for _reward_element in reward_elements.elements:
@@ -586,20 +710,33 @@ def launch_thirsty_lion(
         if player.x > side_limit:
             player.x = side_limit
         if player.y > ground_level_player:
-
             player.can_collide = (
                 False  # Use this for gameplay mechanics instead of enabled
             )
-            player.global_intensity = 1.0  # Keep the lion visible
-            # Smooth the landing by reducing speed as the lion approaches the ground
-            landing_speed = max(
-                10.0, 80.0 * (player.y - ground_level_player) / RESTART_HEIGHT
-            )
-            player.y -= landing_speed * dt
+
+            if player.is_hit:
+                # Only start falling after smash effect is done
+                if smash_effect.is_finished():
+                    # Make the lion visible again
+                    player.enabled = True
+                    # Start falling with increasing speed after smash effect
+                    player.hit_timer += dt
+                    falling_speed = player.hit_fall_speed * (
+                        1 + player.hit_timer * 2
+                    )  # Accelerate the fall
+                    player.y -= falling_speed * dt
+            else:
+                # Normal landing behavior
+                landing_speed = max(
+                    10.0, 80.0 * (player.y - ground_level_player) / RESTART_HEIGHT
+                )
+                player.y -= landing_speed * dt
+
             if player.y < ground_level_player:
                 player.y = ground_level_player
-                player.global_intensity = 1.0
+                player.enabled = True  # Make sure lion is visible
                 player.can_collide = True
+                player.is_hit = False  # Reset hit state
                 player.set_action("idle")
         MAX_YAW = 30
         # Keyboard control
@@ -658,10 +795,12 @@ def launch_thirsty_lion(
                 running = False
                 context = {WIN: True, SCORE: score}
 
-        # Update and draw rain
+        # Update and draw rain and effects
         if not pause:
             rain_manager.update(dt)
+            smash_effect.update(dt)
         rain_manager.draw(screen)
+        smash_effect.draw(screen)
 
         pygame.display.flip()
         dt = clock.tick(60) / 1000
