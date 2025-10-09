@@ -11,7 +11,7 @@ class Controller:
 
     def __init__(
         self,
-        webcam_show: bool = True,
+        webcam_show: bool = False,
         allow_hand_control: bool = False,
         allow_body_control: bool = True,
     ):

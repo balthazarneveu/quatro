@@ -5,7 +5,7 @@ from picamera2 import Picamera2
 from picamera2.devices.imx500 import IMX500, NetworkIntrinsics
 from picamera2.devices.imx500.postprocess_highernet import postprocess_higherhrnet
 from picamera2.devices.imx500.postprocess import COCODrawer
-
+from typing import Optional
 from quatro.control.camera.base import CameraController
 
 
@@ -18,7 +18,7 @@ class PiCameraController(CameraController):
 
     def __init__(
         self,
-        webcam_show: bool = True,
+        webcam_show: bool = False,
         allow_hand_control: bool = False,
         allow_body_control: bool = True,
     ):
@@ -93,12 +93,18 @@ class PiCameraController(CameraController):
 
     def get_frame_from_webcam(self):
         """Get a frame from the camera."""
-        frame = self.picam2.capture_array()
-        return cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        if self.webcam_show:
+            frame = self.picam2.capture_array()
+            return cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        else:
+            return None
 
-    def process_frame(self, frame):
+    def process_frame(self, frame: Optional[np.ndarray] = None):
         """Process a frame using IMX500 AI capabilities."""
-        height, width = frame.shape[:2]
+        if frame is None:
+            height, width = self.WINDOW_SIZE_H_W
+        else:
+            height, width = frame.shape[:2]
 
         # Process the last available keypoints from the AI callback
         if (

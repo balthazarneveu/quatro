@@ -6,7 +6,7 @@ from quatro.control.motion_detection_heuristics import HeuristicsDetector
 class CameraController(ABC):
     def __init__(
         self,
-        webcam_show: bool = True,
+        webcam_show: bool = False,
         allow_hand_control: bool = False,
         allow_body_control: bool = True,
     ):
@@ -64,11 +64,12 @@ class CameraController(ABC):
             self.current_position = None
 
             frame = self.get_frame_from_webcam()
-            frame = cv2.flip(frame, 1)
+            if frame is not None:
+                frame = cv2.flip(frame, 1)
 
             processed_frame = self.process_frame(frame)
 
-            if self.webcam_show:
+            if frame is not None and self.webcam_show:
                 cv2.imshow("Webcam Feed", processed_frame)
                 cv2.waitKey(1)
 

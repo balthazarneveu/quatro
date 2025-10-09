@@ -40,7 +40,7 @@ def _get_picamera_controller() -> Optional[Type[CameraController]]:
 
 
 def create_camera_controller(
-    webcam_show: bool = True,
+    webcam_show: bool = False,
     allow_hand_control: bool = False,
     allow_body_control: bool = True,
     force_mediapipe: bool = False,
