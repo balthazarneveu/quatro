@@ -125,7 +125,7 @@ class PiCameraController(CameraController):
                 # Update position with normalization
                 xy_normed_position = np.array([(width - xy[0]) / width, xy[1] / height])
                 self.current_position = xy_normed_position[0]
-                self.current_position = 0.5 + 2.2 * (self.current_position - 0.5)
+                self.current_position = 0.5 + 4.0 * (self.current_position - 0.5)
 
                 # Draw pose keypoints if display is enabled
                 if self.webcam_show and self.drawer is not None:
