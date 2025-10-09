@@ -710,7 +710,7 @@ def launch_thirsty_lion(
     moving_elements.append(
         MovingElement(
             speed=speed,
-            num_elements=3,
+            num_elements=2,
             y=0.0 * CROP_TOP,
             z_source=Z_SOURCE,
             z_far_away=Z_SOURCE,

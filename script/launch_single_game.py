@@ -17,7 +17,7 @@ GAMES_NAMES = list(GAMES_LIST.keys())
 
 def populate_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser()
-    parser.add_argument("-g", "--game", type=str, default="bunny", choices=GAMES_NAMES)
+    parser.add_argument("-g", "--game", type=str, default="lion", choices=GAMES_NAMES)
     parser.add_argument("-r", "--resolution", type=int, nargs=2, default=None)
     parser.add_argument("-d", "--debug", action="store_true")
     parser.add_argument("-m", "--mute", action="store_true")
