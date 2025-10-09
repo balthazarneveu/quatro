@@ -17,6 +17,7 @@ from quatro.system.window import init_screen
 from quatro.engine.planes import Floor, Wall, FacingWall
 from quatro.engine.endless_track import MovingTrack, MovingElement
 from quatro.engine.pinhole_camera import Camera
+from quatro.system.performance_tracker import PerformanceTracker
 from typing import List
 import random
 
@@ -612,7 +613,10 @@ def launch_thirsty_lion(
     audio: bool = True,
     game_config: dict = DEFAULT_GAME_CONFIG,
     controller: List[str] = [KEYBOARD],
+    log_performance: bool = False,
 ) -> dict:
+    if log_performance:
+        performance_tracker = PerformanceTracker()
     max_score = game_config.get(MAX_SCORE_WIN, 10)
     context = {}
     context = {WIN: False, SCORE: 0}
@@ -909,6 +913,10 @@ def launch_thirsty_lion(
             smash_effect.update(dt)
         rain_manager.draw(screen)
         smash_effect.draw(screen)
+
+        # Track FPS
+        if log_performance:
+            performance_tracker.track_performance()
 
         pygame.display.flip()
         dt = clock.tick(60) / 1000

@@ -22,6 +22,7 @@ def populate_parser() -> argparse.ArgumentParser:
     parser.add_argument("-d", "--debug", action="store_true")
     parser.add_argument("-m", "--mute", action="store_true")
     parser.add_argument("-n", "--no-webcam", action="store_true")
+    parser.add_argument("-l", "--log-performance", action="store_true")
     return parser
 
 
@@ -42,6 +43,7 @@ if __name__ == "__main__":
             debug=args.debug,
             audio=not args.mute,
             controller=controller,
+            log_performance=args.log_performance,
         )
         # if context.get("win", False):
         #     game_func = GAMES_LIST.get("flappy", None)

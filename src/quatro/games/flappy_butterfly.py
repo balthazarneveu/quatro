@@ -7,6 +7,7 @@ from quatro.graphics.animation.wheat import Wheat
 from quatro.system.input_handler import KeyDebouncer
 from quatro.system.quit import handle_quit
 from quatro.system.window import init_screen
+from quatro.system.performance_tracker import PerformanceTracker
 import random
 import numpy as np
 
@@ -25,7 +26,10 @@ def launch_flappy_butterfly(
     debug: bool = False,
     audio: bool = True,
     controller: list = [KEYBOARD],
+    log_performance: bool = False,
 ) -> dict:
+    if log_performance:
+        performance_tracker = PerformanceTracker()
     context = {}
     # pygame setup
     screen = init_screen(resolution)
@@ -97,7 +101,8 @@ def launch_flappy_butterfly(
         if player.y > screen.get_height():
             player.y = 30
             current_background = "sunset_field"
-
+        if log_performance:
+            performance_tracker.track_performance()
         # flip() the display to put your work on screen
         pygame.display.flip()
 
